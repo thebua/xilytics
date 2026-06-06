@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xilytics — İlk 11 & Diziliş Oluşturucu</title>
+<meta name="description" content="Futbol dizilişini saniyeler içinde kur. Gerçek kulüp renkleri, sürükle-bırak oyuncular, yedek kadrosu ve PNG çıktısı. Xilytics ile takımını tasarla.">
+<link rel="icon" href="xilytics-favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070b0a; --panel:#0e1512; --panel2:#111c16; --lime:#caff3f; --lime-d:#a6e018;
+    --ink:#0e1512; --text:#e8f3e6; --muted:#829884; --muted2:#7c8c7e; --border:#1c2620;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.5}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+
+  /* atmosphere */
+  .glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(620px circle at 78% -5%,rgba(202,255,63,.12),transparent 60%),
+      radial-gradient(700px circle at 12% 8%,rgba(30,90,55,.35),transparent 55%);}
+  .grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size:48px 48px;mask-image:radial-gradient(circle at 50% 25%,#000,transparent 75%)}
+  main{position:relative;z-index:1}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);background:rgba(7,11,10,.7);border-bottom:1px solid var(--border)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand svg{display:block}
+  .brand .nm{font-family:'Archivo';font-weight:800;font-size:1.35rem;letter-spacing:-.5px}
+  .brand .nm .xi{color:var(--lime)}
+  .nav-links{display:flex;align-items:center;gap:28px}
+  .nav-links a{font-size:.92rem;color:var(--muted2);transition:.15s;letter-spacing:.2px}
+  .nav-links a:hover{color:var(--text)}
+  .btn{font-family:'Space Grotesk';font-weight:700;letter-spacing:.3px;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:8px;transition:.18s}
+  .btn-lime{background:var(--lime);color:var(--ink);padding:11px 20px;border-radius:11px}
+  .btn-lime:hover{background:var(--lime-d);transform:translateY(-1px);box-shadow:0 8px 24px rgba(202,255,63,.22)}
+  .btn-ghost{border:1px solid var(--border);color:var(--text);padding:11px 20px;border-radius:11px;background:transparent}
+  .btn-ghost:hover{border-color:var(--lime);color:var(--lime)}
+  @media(max-width:680px){.nav-links a:not(.navcta){display:none}}
+
+  /* HERO */
+  .hero{padding:90px 0 60px;text-align:center}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono';font-size:.72rem;letter-spacing:2px;text-transform:uppercase;
+    color:var(--lime);border:1px solid var(--border);background:var(--panel);padding:7px 15px;border-radius:30px;margin-bottom:28px;
+    opacity:0;animation:rise .7s .05s forwards}
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime)}
+  h1.hero-t{font-family:'Archivo';font-weight:900;font-size:clamp(2.6rem,7vw,5rem);line-height:1.02;letter-spacing:-2px;
+    opacity:0;animation:rise .7s .12s forwards}
+  h1.hero-t .hl{color:var(--lime);position:relative;white-space:nowrap}
+  .hero p.sub{max-width:600px;margin:24px auto 0;color:var(--muted2);font-size:clamp(1rem,2.2vw,1.22rem);line-height:1.6;
+    opacity:0;animation:rise .7s .2s forwards}
+  .hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:38px;opacity:0;animation:rise .7s .28s forwards}
+  .btn-lg{font-size:1.05rem;padding:15px 30px;border-radius:13px}
+  .hero-meta{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;margin-top:34px;opacity:0;animation:rise .7s .36s forwards}
+  .hero-meta span{font-size:.85rem;color:var(--muted2);display:flex;align-items:center;gap:7px}
+  .hero-meta .ic{color:var(--lime)}
+
+  /* MOCK PREVIEW */
+  .preview{margin:64px auto 0;max-width:920px;opacity:0;animation:rise .9s .44s forwards}
+  .browser{background:var(--panel);border:1px solid var(--border);border-radius:18px 18px 0 0;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.6)}
+  .bar{display:flex;align-items:center;gap:7px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--panel2)}
+  .bar i{width:11px;height:11px;border-radius:50%;background:#28332b}
+  .bar .url{margin-left:14px;font-family:'JetBrains Mono';font-size:.72rem;color:var(--muted2);background:var(--bg);padding:5px 14px;border-radius:7px;border:1px solid var(--border)}
+  .bar .url b{color:var(--lime);font-weight:500}
+  .shot{position:relative;background:
+      repeating-linear-gradient(0deg,#1b6b2f 0 9%,#155527 9% 18%);
+      height:380px;overflow:hidden}
+  .shot::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,transparent 45%,rgba(0,0,0,.5))}
+  .pitchline{position:absolute;border:2px solid rgba(255,255,255,.45)}
+  .pl-circle{top:50%;left:50%;width:120px;height:120px;border-radius:50%;transform:translate(-50%,-50%)}
+  .pl-mid{top:50%;left:0;width:100%;height:0;border:none;border-top:2px solid rgba(255,255,255,.45)}
+  .pl-box{top:0;left:50%;width:200px;height:54px;transform:translateX(-50%);border-top:none}
+  .dotp{position:absolute;width:34px;height:34px;border-radius:50%;transform:translate(-50%,-50%);
+    background:repeating-linear-gradient(90deg,#fde100 0 5px,#0a1b4d 5px 10px);border:2px solid #fff;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.5)}
+  .dotp span{width:21px;height:21px;border-radius:50%;background:rgba(255,255,255,.95);color:#10233f;
+    font-family:'Archivo';font-weight:900;font-size:.72rem;display:flex;align-items:center;justify-content:center}
+
+  /* SECTIONS */
+  section.block{padding:90px 0}
+  .eyebrow{font-family:'JetBrains Mono';font-size:.72rem;letter-spacing:3px;text-transform:uppercase;color:var(--lime);text-align:center;margin-bottom:14px}
+  h2.sec{font-family:'Archivo';font-weight:800;font-size:clamp(1.8rem,4vw,2.8rem);letter-spacing:-1px;text-align:center;line-height:1.1}
+  .sec-sub{max-width:540px;margin:16px auto 0;text-align:center;color:var(--muted2);font-size:1.05rem}
+
+  .feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin-top:54px}
+  .feat{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:28px;transition:.2s}
+  .feat:hover{border-color:#2f4a36;transform:translateY(-4px)}
+  .feat .ico{width:46px;height:46px;border-radius:12px;background:rgba(202,255,63,.1);border:1px solid rgba(202,255,63,.25);
+    display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:18px}
+  .feat h3{font-family:'Archivo';font-weight:700;font-size:1.18rem;margin-bottom:9px}
+  .feat p{color:var(--muted2);font-size:.95rem;line-height:1.55}
+
+  /* STEPS */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:54px}
+  .step{position:relative;padding:28px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,var(--panel),var(--bg))}
+  .step .n{font-family:'Archivo';font-weight:900;font-size:2.4rem;color:var(--lime);opacity:.25;line-height:1}
+  .step h3{font-family:'Archivo';font-weight:700;font-size:1.1rem;margin:10px 0 8px}
+  .step p{color:var(--muted2);font-size:.92rem;line-height:1.5}
+
+  /* CTA strip */
+  .cta-strip{margin:0 auto;max-width:980px;background:linear-gradient(135deg,#16331d,#0c1610);border:1px solid #2f4a36;
+    border-radius:24px;padding:60px 40px;text-align:center;position:relative;overflow:hidden}
+  .cta-strip::before{content:"XI";position:absolute;right:-10px;bottom:-40px;font-family:'Archivo';font-weight:900;
+    font-size:13rem;color:rgba(202,255,63,.06);line-height:1}
+  .cta-strip h2{font-family:'Archivo';font-weight:900;font-size:clamp(1.8rem,4vw,2.6rem);letter-spacing:-1px;position:relative}
+  .cta-strip p{color:var(--muted2);margin:14px auto 30px;max-width:440px;position:relative}
+
+  /* FOOTER */
+  footer{border-top:1px solid var(--border);padding:44px 0;margin-top:90px}
+  .foot-in{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px}
+  .foot-in .muted{color:var(--muted2);font-size:.86rem}
+  .foot-links{display:flex;gap:22px}
+  .foot-links a{color:var(--muted2);font-size:.88rem;transition:.15s}
+  .foot-links a:hover{color:var(--lime)}
+
+  @keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+  .reveal{opacity:0;transform:translateY(28px);transition:.7s cubic-bezier(.2,.7,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* LANG MENU */
+  .langwrap{position:relative}
+  .langtrigger{display:flex;align-items:center;gap:7px;height:42px;padding:0 12px;border-radius:11px;background:var(--panel);
+    border:1px solid var(--border);cursor:pointer;transition:.2s;color:var(--text);font-family:'Space Grotesk';font-weight:700}
+  .langtrigger:hover{border-color:var(--lime);color:var(--lime)}
+  .langtrigger .globe{width:18px;height:18px;display:block;flex:none}
+  .langtrigger .cur{font-family:'JetBrains Mono';font-size:.82rem;letter-spacing:1px}
+  .langtrigger .chev{font-size:.6rem;opacity:.6;transition:.2s}
+  .langtrigger.open .chev{transform:rotate(180deg)}
+  .langmenu{position:absolute;top:52px;right:0;background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    padding:8px;min-width:188px;z-index:80;box-shadow:0 18px 50px rgba(0,0,0,.6);
+    opacity:0;transform:translateY(-8px) scale(.97);pointer-events:none;transition:.18s}
+  .langmenu.open{opacity:1;transform:none;pointer-events:auto}
+  .langmenu .mt{font-family:'JetBrains Mono';font-size:.62rem;letter-spacing:1.5px;color:var(--muted2);text-transform:uppercase;padding:6px 10px 8px}
+  .langmenu button{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;
+    color:var(--text);font-family:'Space Grotesk';font-size:.96rem;padding:9px 11px;border-radius:9px;cursor:pointer;transition:.12s}
+  .langmenu button:hover{background:rgba(255,255,255,.05)}
+  .langmenu button.active{background:var(--lime);color:var(--ink);font-weight:700}
+  .langmenu button .code{font-family:'JetBrains Mono';font-size:.78rem;opacity:.6}
+  .langmenu button.active .code{opacity:1}
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="grid-bg"></div>
+
+  <nav>
+    <div class="wrap nav-in">
+      <a class="brand" href="#top">
+        <svg width="38" height="38" viewBox="0 0 104 104"><rect x="2" y="2" width="100" height="100" rx="24" fill="#0e1512" stroke="#caff3f" stroke-width="4"/><text x="52" y="70" font-family="Archivo" font-weight="900" font-size="48" fill="#caff3f" text-anchor="middle">XI</text></svg>
+        <span class="nm"><span class="xi">XI</span>lytics</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features" data-i18n="nav_features">Özellikler</a>
+        <a href="#how" data-i18n="nav_how">Nasıl çalışır</a>
+        <a href="#soon" data-i18n="nav_soon">Yakında</a>
+        <div class="langwrap">
+          <button class="langtrigger" id="langTrigger" aria-label="Language / Dil">
+            <svg class="globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/></svg>
+            <span class="cur" id="langCur">TR</span>
+            <span class="chev">▾</span>
+          </button>
+          <div class="langmenu" id="langMenu"><div class="mt" data-i18n="lang_title">Dil / Language</div></div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main id="top">
+    <!-- HERO -->
+    <section class="hero wrap">
+      <div class="pill"><span class="dot"></span><span data-i18n="hero_pill">Futbol diziliş oluşturucu</span></div>
+      <h1 class="hero-t" data-i18n-html="hero_title">Takımının <span class="hl">ilk 11'ini</span><br>saniyeler içinde kur</h1>
+      <p class="sub" data-i18n="hero_sub">Sürükle-bırak oyuncular, gerçek kulüp renkleri ve desenleri, bayraklar, çok katmanlı yedek kadrosu ve tek tıkla PNG çıktısı. Kayıt yok, kurulum yok.</p>
+      <div class="hero-cta">
+        <a class="btn btn-lime btn-lg" href="app.html" data-i18n="hero_cta1">Dizilişini Oluştur →</a>
+        <a class="btn btn-ghost btn-lg" href="#how" data-i18n="hero_cta2">Nasıl çalışır</a>
+      </div>
+      <div class="hero-meta">
+        <span><span class="ic">●</span> <span data-i18n="hero_m1">8 lig · 120+ kulüp rengi</span></span>
+        <span><span class="ic">●</span> <span data-i18n="hero_m2">7 dil desteği</span></span>
+        <span><span class="ic">●</span> <span data-i18n="hero_m3">Tamamen ücretsiz</span></span>
+      </div>
+
+      <!-- PREVIEW -->
+      <div class="preview">
+        <div class="browser">
+          <div class="bar"><i></i><i></i><i></i><span class="url"><b>xilytics.com</b></span></div>
+          <div class="shot">
+            <div class="pitchline pl-box"></div>
+            <div class="pitchline pl-mid"></div>
+            <div class="pitchline pl-circle"></div>
+            <div class="dotp" style="left:50%;top:88%"><span>1</span></div>
+            <div class="dotp" style="left:20%;top:70%"><span>2</span></div>
+            <div class="dotp" style="left:40%;top:73%"><span>3</span></div>
+            <div class="dotp" style="left:60%;top:73%"><span>4</span></div>
+            <div class="dotp" style="left:80%;top:70%"><span>5</span></div>
+            <div class="dotp" style="left:30%;top:48%"><span>6</span></div>
+            <div class="dotp" style="left:50%;top:52%"><span>8</span></div>
+            <div class="dotp" style="left:70%;top:48%"><span>7</span></div>
+            <div class="dotp" style="left:35%;top:26%"><span>10</span></div>
+            <div class="dotp" style="left:65%;top:26%"><span>11</span></div>
+            <div class="dotp" style="left:50%;top:14%"><span>9</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="block wrap reveal" id="features">
+      <div class="eyebrow" data-i18n="feat_eyebrow">Özellikler</div>
+      <h2 class="sec" data-i18n="feat_title">Diziliş kurmak için her şey</h2>
+      <p class="sec-sub" data-i18n="feat_sub">Bir maç öncesi grafiği, fantezi kadron ya da taktik tahtan için ihtiyacın olan tüm araçlar.</p>
+      <div class="feats">
+        <div class="feat"><div class="ico">⚽</div><h3 data-i18n="f1_t">Sürükle & Bırak</h3><p data-i18n="f1_d">Oyuncuları sahada istediğin yere taşı. 6 hazır diziliş (4-4-2, 4-3-3, 3-5-2 ve daha fazlası).</p></div>
+        <div class="feat"><div class="ico">🎽</div><h3 data-i18n="f2_t">Gerçek Kulüp Renkleri</h3><p data-i18n="f2_d">8 ligden 120+ kulübün forma rengi ve deseni: çizgili, parçalı, çapraz bant. Telifsiz, isimsiz.</p></div>
+        <div class="feat"><div class="ico">🔁</div><h3 data-i18n="f3_t">Çok Katmanlı Kadro</h3><p data-i18n="f3_d">Her ilk 11 oyuncusuna istediğin kadar yedek bağla. Yedekleri sahada göster ya da gizle.</p></div>
+        <div class="feat"><div class="ico">🏳️</div><h3 data-i18n="f4_t">Bayraklar</h3><p data-i18n="f4_d">Oyuncuların ülkesini forma rozetine ekle. 80+ ülke, arama kutusuyla saniyede bul.</p></div>
+        <div class="feat"><div class="ico">🌱</div><h3 data-i18n="f5_t">Premium Çim</h3><p data-i18n="f5_d">Klasik yatay, dikey şerit, dama deseni, gece stadyumu... Sahanı istediğin gibi giydir.</p></div>
+        <div class="feat"><div class="ico">⬇️</div><h3 data-i18n="f6_t">PNG Çıktısı</h3><p data-i18n="f6_d">Dizilişini takım armanla birlikte yüksek çözünürlüklü resim olarak indir ve paylaş.</p></div>
+      </div>
+    </section>
+
+    <!-- HOW -->
+    <section class="block wrap reveal" id="how">
+      <div class="eyebrow" data-i18n="how_eyebrow">Nasıl çalışır</div>
+      <h2 class="sec" data-i18n="how_title">Üç adımda hazır</h2>
+      <div class="steps">
+        <div class="step"><div class="n">01</div><h3 data-i18n="s1_t">Dizilişini seç</h3><p data-i18n="s1_d">Takım adını yaz, formayı ve çim stilini seç, dizilişini belirle.</p></div>
+        <div class="step"><div class="n">02</div><h3 data-i18n="s2_t">Oyuncularını yerleştir</h3><p data-i18n="s2_d">İsimleri, numaraları, bayrakları gir. Sürükleyerek tam istediğin konuma taşı.</p></div>
+        <div class="step"><div class="n">03</div><h3 data-i18n="s3_t">Kaydet & paylaş</h3><p data-i18n="s3_d">Tek tıkla PNG indir, sosyal medyada paylaş ya da arkadaşlarına gönder.</p></div>
+      </div>
+    </section>
+
+    <!-- SOON -->
+    <section class="block wrap reveal" id="soon">
+      <div class="eyebrow" data-i18n="soon_eyebrow">Yol haritası</div>
+      <h2 class="sec" data-i18n="soon_title">Yakında: Futbol İstatistikleri</h2>
+      <p class="sec-sub" data-i18n="soon_sub">Xilytics büyüyor. Diziliş aracının yanına derinlemesine futbol verisi ve analiz katmanları geliyor — adı boşuna "analytics" değil.</p>
+    </section>
+
+    <!-- CTA -->
+    <section class="wrap reveal">
+      <div class="cta-strip">
+        <h2 data-i18n="cta_title">Dizilişini kurmaya hazır mısın?</h2>
+        <p data-i18n="cta_sub">Kayıt yok, ücret yok. Aç ve takımını tasarlamaya başla.</p>
+        <a class="btn btn-lime btn-lg" href="app.html" style="position:relative" data-i18n="cta_btn">Aracı Aç →</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot-in">
+      <a class="brand" href="#top">
+        <svg width="30" height="30" viewBox="0 0 104 104"><rect x="2" y="2" width="100" height="100" rx="24" fill="#0e1512" stroke="#caff3f" stroke-width="4"/><text x="52" y="70" font-family="Archivo" font-weight="900" font-size="48" fill="#caff3f" text-anchor="middle">XI</text></svg>
+        <span class="nm" style="font-size:1.1rem"><span class="xi">XI</span>lytics</span>
+      </a>
+      <span class="muted" data-i18n="foot_tag">© 2026 xilytics.com · İlk 11 & Diziliş Oluşturucu</span>
+      <div class="foot-links">
+        <a href="#features" data-i18n="nav_features">Özellikler</a>
+        <a href="#how" data-i18n="nav_how">Nasıl çalışır</a>
+        <a href="#soon" data-i18n="nav_soon">Yakında</a>
+      </div>
+    </div>
+  </footer>
+
+<script>
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  const I18N={
+    tr:{name:"Türkçe",code:"TR",
+      nav_features:"Özellikler",nav_how:"Nasıl çalışır",nav_soon:"Yakında",nav_open:"Aracı Aç",lang_title:"Dil / Language",
+      hero_pill:"Futbol diziliş oluşturucu",hero_title:'Takımının <span class="hl">ilk 11\'ini</span><br>saniyeler içinde kur',
+      hero_sub:"Sürükle-bırak oyuncular, gerçek kulüp renkleri ve desenleri, bayraklar, çok katmanlı yedek kadrosu ve tek tıkla PNG çıktısı. Kayıt yok, kurulum yok.",
+      hero_cta1:"Dizilişini Oluştur →",hero_cta2:"Nasıl çalışır",hero_m1:"8 lig · 120+ kulüp rengi",hero_m2:"7 dil desteği",hero_m3:"Tamamen ücretsiz",
+      feat_eyebrow:"Özellikler",feat_title:"Diziliş kurmak için her şey",feat_sub:"Bir maç öncesi grafiği, fantezi kadron ya da taktik tahtan için ihtiyacın olan tüm araçlar.",
+      f1_t:"Sürükle & Bırak",f1_d:"Oyuncuları sahada istediğin yere taşı. 6 hazır diziliş (4-4-2, 4-3-3, 3-5-2 ve daha fazlası).",
+      f2_t:"Gerçek Kulüp Renkleri",f2_d:"8 ligden 120+ kulübün forma rengi ve deseni: çizgili, parçalı, çapraz bant. Telifsiz, isimsiz.",
+      f3_t:"Çok Katmanlı Kadro",f3_d:"Her ilk 11 oyuncusuna istediğin kadar yedek bağla. Yedekleri sahada göster ya da gizle.",
+      f4_t:"Bayraklar",f4_d:"Oyuncuların ülkesini forma rozetine ekle. 80+ ülke, arama kutusuyla saniyede bul.",
+      f5_t:"Premium Çim",f5_d:"Klasik yatay, dikey şerit, dama deseni, gece stadyumu... Sahanı istediğin gibi giydir.",
+      f6_t:"PNG Çıktısı",f6_d:"Dizilişini takım armanla birlikte yüksek çözünürlüklü resim olarak indir ve paylaş.",
+      how_eyebrow:"Nasıl çalışır",how_title:"Üç adımda hazır",
+      s1_t:"Dizilişini seç",s1_d:"Takım adını yaz, formayı ve çim stilini seç, dizilişini belirle.",
+      s2_t:"Oyuncularını yerleştir",s2_d:"İsimleri, numaraları, bayrakları gir. Sürükleyerek tam istediğin konuma taşı.",
+      s3_t:"Kaydet & paylaş",s3_d:"Tek tıkla PNG indir, sosyal medyada paylaş ya da arkadaşlarına gönder.",
+      soon_eyebrow:"Yol haritası",soon_title:"Yakında: Futbol İstatistikleri",soon_sub:'Xilytics büyüyor. Diziliş aracının yanına derinlemesine futbol verisi ve analiz katmanları geliyor — adı boşuna "analytics" değil.',
+      cta_title:"Dizilişini kurmaya hazır mısın?",cta_sub:"Kayıt yok, ücret yok. Aç ve takımını tasarlamaya başla.",cta_btn:"Aracı Aç →",
+      foot_tag:"© 2026 xilytics.com · İlk 11 & Diziliş Oluşturucu"},
+    en:{name:"English",code:"EN",
+      nav_features:"Features",nav_how:"How it works",nav_soon:"Coming soon",nav_open:"Open the tool",lang_title:"Language",
+      hero_pill:"Football lineup builder",hero_title:'Build your team\'s <span class="hl">starting XI</span><br>in seconds',
+      hero_sub:"Drag-and-drop players, real club colors and patterns, flags, multi-layer substitutes and one-click PNG export. No sign-up, no setup.",
+      hero_cta1:"Build your lineup →",hero_cta2:"How it works",hero_m1:"8 leagues · 120+ club colors",hero_m2:"7 languages",hero_m3:"Completely free",
+      feat_eyebrow:"Features",feat_title:"Everything to build a lineup",feat_sub:"All the tools you need for a matchday graphic, your fantasy squad or a tactics board.",
+      f1_t:"Drag & Drop",f1_d:"Move players anywhere on the pitch. 6 ready formations (4-4-2, 4-3-3, 3-5-2 and more).",
+      f2_t:"Real Club Colors",f2_d:"120+ club kit colors and patterns from 8 leagues: stripes, halves, sash. Copyright-free, no names.",
+      f3_t:"Multi-Layer Squad",f3_d:"Link as many subs as you want to each starter. Show subs on the pitch or hide them.",
+      f4_t:"Flags",f4_d:"Add each player's country to the kit badge. 80+ countries, found instantly via search.",
+      f5_t:"Premium Pitch",f5_d:"Classic horizontal, vertical stripes, checkerboard, night stadium... Dress your pitch your way.",
+      f6_t:"PNG Export",f6_d:"Download your lineup with your team crest as a high-resolution image and share it.",
+      how_eyebrow:"How it works",how_title:"Ready in three steps",
+      s1_t:"Pick a formation",s1_d:"Type your team name, choose the kit and pitch style, set your formation.",
+      s2_t:"Place your players",s2_d:"Enter names, numbers, flags. Drag them to the exact position you want.",
+      s3_t:"Save & share",s3_d:"Export a PNG in one click, share on social media or send to friends.",
+      soon_eyebrow:"Roadmap",soon_title:"Coming soon: Football Stats",soon_sub:'Xilytics is growing. Deep football data and analysis layers are coming alongside the lineup tool — the name isn\'t "analytics" for nothing.',
+      cta_title:"Ready to build your lineup?",cta_sub:"No sign-up, no fees. Open it and start designing your team.",cta_btn:"Open the tool →",
+      foot_tag:"© 2026 xilytics.com · Starting XI & Lineup Builder"},
+    es:{name:"Español",code:"ES",
+      nav_features:"Características",nav_how:"Cómo funciona",nav_soon:"Próximamente",nav_open:"Abrir la herramienta",lang_title:"Idioma",
+      hero_pill:"Creador de alineaciones",hero_title:'Crea el <span class="hl">once inicial</span> de<br>tu equipo en segundos',
+      hero_sub:"Jugadores arrastrables, colores y patrones reales de clubes, banderas, suplentes en varias capas y exportación PNG con un clic. Sin registro, sin instalación.",
+      hero_cta1:"Crea tu alineación →",hero_cta2:"Cómo funciona",hero_m1:"8 ligas · 120+ colores de club",hero_m2:"7 idiomas",hero_m3:"Totalmente gratis",
+      feat_eyebrow:"Características",feat_title:"Todo para crear una alineación",feat_sub:"Todas las herramientas para un gráfico de partido, tu equipo fantasy o una pizarra táctica.",
+      f1_t:"Arrastrar y soltar",f1_d:"Mueve jugadores por el campo. 6 formaciones listas (4-4-2, 4-3-3, 3-5-2 y más).",
+      f2_t:"Colores reales de clubes",f2_d:"120+ colores y patrones de camisetas de 8 ligas: rayas, mitades, banda. Sin copyright, sin nombres.",
+      f3_t:"Plantilla por capas",f3_d:"Vincula tantos suplentes como quieras a cada titular. Muéstralos en el campo u ocúltalos.",
+      f4_t:"Banderas",f4_d:"Añade el país de cada jugador al escudo. 80+ países, encuéntralos al instante.",
+      f5_t:"Césped premium",f5_d:"Horizontal clásico, rayas verticales, tablero, estadio nocturno... Viste tu campo a tu gusto.",
+      f6_t:"Exportar PNG",f6_d:"Descarga tu alineación con el escudo de tu equipo en alta resolución y compártela.",
+      how_eyebrow:"Cómo funciona",how_title:"Listo en tres pasos",
+      s1_t:"Elige una formación",s1_d:"Escribe el nombre del equipo, elige la camiseta y el césped, define tu formación.",
+      s2_t:"Coloca a tus jugadores",s2_d:"Introduce nombres, números, banderas. Arrástralos a la posición exacta.",
+      s3_t:"Guardar y compartir",s3_d:"Exporta un PNG con un clic, compártelo en redes o envíalo a tus amigos.",
+      soon_eyebrow:"Hoja de ruta",soon_title:"Próximamente: Estadísticas",soon_sub:'Xilytics crece. Llegan capas de datos y análisis de fútbol junto a la herramienta — no se llama "analytics" por nada.',
+      cta_title:"¿Listo para crear tu alineación?",cta_sub:"Sin registro, sin pagos. Ábrela y empieza a diseñar tu equipo.",cta_btn:"Abrir la herramienta →",
+      foot_tag:"© 2026 xilytics.com · Once inicial y creador de alineaciones"},
+    de:{name:"Deutsch",code:"DE",
+      nav_features:"Funktionen",nav_how:"So funktioniert's",nav_soon:"Demnächst",nav_open:"Tool öffnen",lang_title:"Sprache",
+      hero_pill:"Aufstellungs-Generator",hero_title:'Stell die <span class="hl">Startelf</span> deines<br>Teams in Sekunden auf',
+      hero_sub:"Spieler per Drag-and-Drop, echte Vereinsfarben und -muster, Flaggen, mehrschichtige Ersatzbank und PNG-Export mit einem Klick. Keine Anmeldung, keine Einrichtung.",
+      hero_cta1:"Aufstellung erstellen →",hero_cta2:"So funktioniert's",hero_m1:"8 Ligen · 120+ Vereinsfarben",hero_m2:"7 Sprachen",hero_m3:"Völlig kostenlos",
+      feat_eyebrow:"Funktionen",feat_title:"Alles für eine Aufstellung",feat_sub:"Alle Werkzeuge für eine Matchday-Grafik, dein Fantasy-Team oder eine Taktiktafel.",
+      f1_t:"Drag & Drop",f1_d:"Spieler frei auf dem Feld bewegen. 6 fertige Formationen (4-4-2, 4-3-3, 3-5-2 und mehr).",
+      f2_t:"Echte Vereinsfarben",f2_d:"120+ Trikotfarben und -muster aus 8 Ligen: Streifen, geteilt, Schärpe. Lizenzfrei, ohne Namen.",
+      f3_t:"Mehrschichtiger Kader",f3_d:"Verknüpfe beliebig viele Ersatzspieler mit jedem Stammspieler. Auf dem Feld zeigen oder ausblenden.",
+      f4_t:"Flaggen",f4_d:"Füge das Land jedes Spielers zum Trikot-Badge hinzu. 80+ Länder, per Suche sofort gefunden.",
+      f5_t:"Premium-Rasen",f5_d:"Klassisch horizontal, vertikale Streifen, Schachbrett, Nachtstadion... Gestalte dein Feld.",
+      f6_t:"PNG-Export",f6_d:"Lade deine Aufstellung mit Vereinswappen als hochauflösendes Bild herunter und teile sie.",
+      how_eyebrow:"So funktioniert's",how_title:"In drei Schritten fertig",
+      s1_t:"Formation wählen",s1_d:"Teamname eingeben, Trikot und Rasenstil wählen, Formation festlegen.",
+      s2_t:"Spieler platzieren",s2_d:"Namen, Nummern, Flaggen eingeben. An die genaue Position ziehen.",
+      s3_t:"Speichern & teilen",s3_d:"Mit einem Klick PNG exportieren, in sozialen Medien teilen oder an Freunde senden.",
+      soon_eyebrow:"Roadmap",soon_title:"Demnächst: Fußball-Statistiken",soon_sub:'Xilytics wächst. Neben dem Aufstellungs-Tool kommen tiefe Fußballdaten und Analyse-Ebenen — nicht umsonst "analytics".',
+      cta_title:"Bereit für deine Aufstellung?",cta_sub:"Keine Anmeldung, keine Gebühren. Öffnen und dein Team gestalten.",cta_btn:"Tool öffnen →",
+      foot_tag:"© 2026 xilytics.com · Startelf & Aufstellungs-Generator"},
+    fr:{name:"Français",code:"FR",
+      nav_features:"Fonctionnalités",nav_how:"Comment ça marche",nav_soon:"Bientôt",nav_open:"Ouvrir l'outil",lang_title:"Langue",
+      hero_pill:"Créateur de compositions",hero_title:'Composez le <span class="hl">onze de départ</span><br>de votre équipe en secondes',
+      hero_sub:"Joueurs en glisser-déposer, vraies couleurs et motifs de clubs, drapeaux, remplaçants multi-niveaux et export PNG en un clic. Sans inscription, sans installation.",
+      hero_cta1:"Créer votre composition →",hero_cta2:"Comment ça marche",hero_m1:"8 ligues · 120+ couleurs de clubs",hero_m2:"7 langues",hero_m3:"Entièrement gratuit",
+      feat_eyebrow:"Fonctionnalités",feat_title:"Tout pour créer une composition",feat_sub:"Tous les outils pour un visuel d'avant-match, votre équipe fantasy ou un tableau tactique.",
+      f1_t:"Glisser-déposer",f1_d:"Déplacez les joueurs partout sur le terrain. 6 formations prêtes (4-4-2, 4-3-3, 3-5-2 et plus).",
+      f2_t:"Vraies couleurs de clubs",f2_d:"120+ couleurs et motifs de maillots de 8 ligues : rayures, moitiés, bande. Libre de droits, sans noms.",
+      f3_t:"Effectif multi-niveaux",f3_d:"Liez autant de remplaçants que vous voulez à chaque titulaire. Affichez-les ou masquez-les.",
+      f4_t:"Drapeaux",f4_d:"Ajoutez le pays de chaque joueur au badge du maillot. 80+ pays, trouvés en un instant.",
+      f5_t:"Pelouse premium",f5_d:"Horizontal classique, rayures verticales, damier, stade de nuit... Habillez votre terrain.",
+      f6_t:"Export PNG",f6_d:"Téléchargez votre composition avec l'écusson de votre équipe en haute résolution et partagez-la.",
+      how_eyebrow:"Comment ça marche",how_title:"Prêt en trois étapes",
+      s1_t:"Choisissez une formation",s1_d:"Saisissez le nom de l'équipe, choisissez le maillot et la pelouse, définissez la formation.",
+      s2_t:"Placez vos joueurs",s2_d:"Saisissez noms, numéros, drapeaux. Glissez-les à la position exacte.",
+      s3_t:"Enregistrer & partager",s3_d:"Exportez un PNG en un clic, partagez sur les réseaux ou envoyez à vos amis.",
+      soon_eyebrow:"Feuille de route",soon_title:"Bientôt : Statistiques football",soon_sub:'Xilytics grandit. Des couches de données et d\'analyse arrivent à côté de l\'outil — ce n\'est pas "analytics" pour rien.',
+      cta_title:"Prêt à créer votre composition ?",cta_sub:"Sans inscription, sans frais. Ouvrez et commencez à concevoir votre équipe.",cta_btn:"Ouvrir l'outil →",
+      foot_tag:"© 2026 xilytics.com · Onze de départ & créateur de compositions"},
+    pt:{name:"Português",code:"PT",
+      nav_features:"Funcionalidades",nav_how:"Como funciona",nav_soon:"Em breve",nav_open:"Abrir a ferramenta",lang_title:"Idioma",
+      hero_pill:"Criador de escalações",hero_title:'Monta o <span class="hl">onze inicial</span> da<br>tua equipa em segundos',
+      hero_sub:"Jogadores arrastáveis, cores e padrões reais de clubes, bandeiras, suplentes em várias camadas e exportação PNG num clique. Sem registo, sem instalação.",
+      hero_cta1:"Cria a tua escalação →",hero_cta2:"Como funciona",hero_m1:"8 ligas · 120+ cores de clubes",hero_m2:"7 idiomas",hero_m3:"Totalmente grátis",
+      feat_eyebrow:"Funcionalidades",feat_title:"Tudo para criar uma escalação",feat_sub:"Todas as ferramentas para um gráfico de jogo, a tua equipa fantasy ou um quadro tático.",
+      f1_t:"Arrastar e soltar",f1_d:"Move os jogadores pelo campo. 6 formações prontas (4-4-2, 4-3-3, 3-5-2 e mais).",
+      f2_t:"Cores reais de clubes",f2_d:"120+ cores e padrões de camisolas de 8 ligas: riscas, metades, faixa. Sem direitos, sem nomes.",
+      f3_t:"Plantel em camadas",f3_d:"Liga quantos suplentes quiseres a cada titular. Mostra-os no campo ou esconde-os.",
+      f4_t:"Bandeiras",f4_d:"Adiciona o país de cada jogador ao emblema da camisola. 80+ países, encontrados num instante.",
+      f5_t:"Relva premium",f5_d:"Horizontal clássico, riscas verticais, xadrez, estádio noturno... Veste o teu campo.",
+      f6_t:"Exportar PNG",f6_d:"Descarrega a tua escalação com o emblema da equipa em alta resolução e partilha-a.",
+      how_eyebrow:"Como funciona",how_title:"Pronto em três passos",
+      s1_t:"Escolhe uma formação",s1_d:"Escreve o nome da equipa, escolhe a camisola e a relva, define a formação.",
+      s2_t:"Posiciona os jogadores",s2_d:"Insere nomes, números, bandeiras. Arrasta-os para a posição exata.",
+      s3_t:"Guardar e partilhar",s3_d:"Exporta um PNG num clique, partilha nas redes ou envia aos amigos.",
+      soon_eyebrow:"Roteiro",soon_title:"Em breve: Estatísticas",soon_sub:'A Xilytics está a crescer. Camadas de dados e análise de futebol chegam junto da ferramenta — não é "analytics" por acaso.',
+      cta_title:"Pronto para criar a tua escalação?",cta_sub:"Sem registo, sem custos. Abre e começa a desenhar a tua equipa.",cta_btn:"Abrir a ferramenta →",
+      foot_tag:"© 2026 xilytics.com · Onze inicial & criador de escalações"},
+    it:{name:"Italiano",code:"IT",
+      nav_features:"Funzionalità",nav_how:"Come funziona",nav_soon:"Prossimamente",nav_open:"Apri lo strumento",lang_title:"Lingua",
+      hero_pill:"Creatore di formazioni",hero_title:'Crea l\'<span class="hl">undici titolare</span><br>della tua squadra in secondi',
+      hero_sub:"Giocatori con trascina-e-rilascia, colori e motivi reali dei club, bandiere, riserve a più livelli ed esportazione PNG con un clic. Senza registrazione, senza installazione.",
+      hero_cta1:"Crea la tua formazione →",hero_cta2:"Come funziona",hero_m1:"8 leghe · 120+ colori di club",hero_m2:"7 lingue",hero_m3:"Completamente gratis",
+      feat_eyebrow:"Funzionalità",feat_title:"Tutto per creare una formazione",feat_sub:"Tutti gli strumenti per una grafica pre-partita, la tua squadra fantasy o una lavagna tattica.",
+      f1_t:"Trascina e rilascia",f1_d:"Sposta i giocatori ovunque sul campo. 6 formazioni pronte (4-4-2, 4-3-3, 3-5-2 e altre).",
+      f2_t:"Colori reali dei club",f2_d:"120+ colori e motivi di maglie da 8 leghe: righe, metà, fascia. Senza copyright, senza nomi.",
+      f3_t:"Rosa a più livelli",f3_d:"Collega quante riserve vuoi a ogni titolare. Mostrale in campo o nascondile.",
+      f4_t:"Bandiere",f4_d:"Aggiungi il paese di ogni giocatore allo stemma della maglia. 80+ paesi, trovati all'istante.",
+      f5_t:"Erba premium",f5_d:"Orizzontale classico, righe verticali, scacchiera, stadio notturno... Vesti il tuo campo.",
+      f6_t:"Esporta PNG",f6_d:"Scarica la tua formazione con lo stemma della squadra in alta risoluzione e condividila.",
+      how_eyebrow:"Come funziona",how_title:"Pronto in tre passi",
+      s1_t:"Scegli una formazione",s1_d:"Scrivi il nome della squadra, scegli la maglia e l'erba, imposta la formazione.",
+      s2_t:"Posiziona i giocatori",s2_d:"Inserisci nomi, numeri, bandiere. Trascinali nella posizione esatta.",
+      s3_t:"Salva e condividi",s3_d:"Esporta un PNG con un clic, condividi sui social o invia agli amici.",
+      soon_eyebrow:"Roadmap",soon_title:"Prossimamente: Statistiche",soon_sub:'Xilytics cresce. Accanto allo strumento arrivano dati e analisi calcistiche approfondite — non si chiama "analytics" per caso.',
+      cta_title:"Pronto a creare la tua formazione?",cta_sub:"Senza registrazione, senza costi. Aprilo e inizia a disegnare la tua squadra.",cta_btn:"Apri lo strumento →",
+      foot_tag:"© 2026 xilytics.com · Undici titolare & creatore di formazioni"}
+  };
+
+  let LANG='tr';
+  function applyLang(l){
+    LANG=l;
+    document.documentElement.lang=l;
+    const d=I18N[l];
+    document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n'); if(d[k]!=null)el.textContent=d[k];});
+    document.querySelectorAll('[data-i18n-html]').forEach(el=>{const k=el.getAttribute('data-i18n-html'); if(d[k]!=null)el.innerHTML=d[k];});
+    document.querySelectorAll('.langmenu button').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));
+    document.getElementById('langCur').textContent=I18N[l].code;
+  }
+
+  const langTrigger=document.getElementById('langTrigger'), langMenu=document.getElementById('langMenu');
+  Object.keys(I18N).forEach(l=>{
+    const b=document.createElement('button'); b.dataset.lang=l;
+    b.innerHTML='<span>'+I18N[l].name+'</span><span class="code">'+I18N[l].code+'</span>';
+    b.onclick=()=>{applyLang(l); closeMenu();};
+    langMenu.appendChild(b);
+  });
+  function openMenu(){langTrigger.classList.add('open');langMenu.classList.add('open');}
+  function closeMenu(){langTrigger.classList.remove('open');langMenu.classList.remove('open');}
+  langTrigger.onclick=(e)=>{e.stopPropagation();langMenu.classList.contains('open')?closeMenu():openMenu();};
+  document.addEventListener('click',e=>{if(!langMenu.contains(e.target)&&!langTrigger.contains(e.target))closeMenu();});
+
+  applyLang('tr');
+</script>
+</body>
+</html>
