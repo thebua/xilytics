@@ -120,13 +120,21 @@
   .step p{color:var(--muted2);font-size:.92rem;line-height:1.5}
 
   /* SEO + FAQ */
-  .seo-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:46px}
-  .seo-col{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px}
-  .seo-col h3{font-family:'Archivo';font-weight:700;font-size:1.05rem;margin-bottom:10px;color:#fff}
-  .seo-col p{color:var(--muted2);font-size:.92rem;line-height:1.55;margin-bottom:12px}
-  .seo-col ul{list-style:none;display:flex;flex-wrap:wrap;gap:7px}
-  .seo-col li{font-size:.8rem;color:#bfe089;background:rgba(202,255,63,.07);border:1px solid rgba(202,255,63,.18);
-    padding:5px 11px;border-radius:20px}
+  /* FORMATIONS CTA */
+  .formations-cta{display:flex;gap:24px;align-items:center;margin-top:46px;background:var(--panel);
+    border:1px solid var(--border);border-radius:18px;padding:26px;transition:.2s;flex-wrap:wrap}
+  .formations-cta:hover{border-color:#2f4a36;transform:translateY(-3px)}
+  .fc-pitch{position:relative;width:150px;flex:none;aspect-ratio:68/80;border-radius:12px;
+    background:repeating-linear-gradient(0deg,#1b6b2f 0 11%,#155527 11% 22%);border:1px solid var(--border);overflow:hidden}
+  .fc-pitch::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,transparent 50%,rgba(0,0,0,.4))}
+  .fc-l{position:absolute;top:50%;left:0;width:100%;border-top:1.5px solid rgba(255,255,255,.35)}
+  .fc-c{position:absolute;top:50%;left:50%;width:26%;aspect-ratio:1;border:1.5px solid rgba(255,255,255,.35);border-radius:50%;transform:translate(-50%,-50%)}
+  .fc-d{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--lime);border:1.5px solid #fff;transform:translate(-50%,-50%);z-index:2;box-shadow:0 2px 4px rgba(0,0,0,.5)}
+  .fc-text{flex:1;min-width:220px}
+  .fc-text h3{font-family:'Archivo';font-weight:800;font-size:1.4rem;letter-spacing:-.5px;margin-bottom:8px;color:#fff}
+  .fc-text p{color:var(--muted2);font-size:1rem;margin-bottom:14px}
+  .fc-link{font-family:'Space Grotesk';font-weight:700;color:var(--lime);font-size:1rem;transition:.15s}
+  .formations-cta:hover .fc-link{letter-spacing:.3px}
   .faq{max-width:760px;margin:46px auto 0;display:flex;flex-direction:column;gap:10px}
   .faq details{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:.2s}
   .faq details[open]{border-color:#2f4a36}
@@ -195,6 +203,7 @@
       <div class="nav-links">
         <a href="#features" data-i18n="nav_features">Özellikler</a>
         <a href="#how" data-i18n="nav_how">Nasıl çalışır</a>
+        <a href="formations.html" data-i18n="nav_formations">Dizilişler</a>
         <a href="#faq">FAQ</a>
         <a href="#soon" data-i18n="nav_soon">Yakında</a>
         <div class="langwrap">
@@ -284,40 +293,31 @@
 
     <!-- SEO CONTENT -->
     <section class="block wrap reveal" id="about">
-      <div class="eyebrow">Football Lineup Builder</div>
-      <h2 class="sec">Create soccer formations online</h2>
-      <p class="sec-sub">Xilytics is a free football lineup builder and starting XI maker for coaches, fans, analysts and content creators. Pick a formation, customize your team sheet, and make a soccer lineup graphic ready to share — all in your browser.</p>
-      <div class="seo-cols">
-        <div class="seo-col">
-          <h3>Lineup builder terms</h3>
-          <p>Build a team shape quickly with the search terms players, coaches and fans use most.</p>
-          <ul><li>football lineup builder</li><li>soccer lineup builder</li><li>football formation creator</li><li>lineup creator</li></ul>
+      <div class="eyebrow" data-i18n="about_eyebrow">Formations</div>
+      <h2 class="sec" data-i18n="about_title">Every formation, one tap away</h2>
+      <p class="sec-sub" data-i18n="about_sub">From the classic 4-4-2 to the attacking 3-4-3 and the rock-solid 5-4-1, Xilytics covers all the popular football formations. Pick a shape, place your players, and see your team come together instantly.</p>
+      <a href="formations.html" class="formations-cta">
+        <div class="fc-pitch"><span class="fc-l"></span><span class="fc-c"></span><span class="fc-d" style="left:50%;top:84%"></span><span class="fc-d" style="left:20%;top:64%"></span><span class="fc-d" style="left:40%;top:67%"></span><span class="fc-d" style="left:60%;top:67%"></span><span class="fc-d" style="left:80%;top:64%"></span><span class="fc-d" style="left:30%;top:44%"></span><span class="fc-d" style="left:50%;top:47%"></span><span class="fc-d" style="left:70%;top:44%"></span><span class="fc-d" style="left:28%;top:22%"></span><span class="fc-d" style="left:50%;top:17%"></span><span class="fc-d" style="left:72%;top:22%"></span></div>
+        <div class="fc-text">
+          <h3 data-i18n="about_guide_t">Explore the formations guide</h3>
+          <p data-i18n="about_guide_d">See all 17 formations explained with diagrams — their strengths, ideas and when to use them.</p>
+          <span class="fc-link" data-i18n="about_guide_link">View all formations →</span>
         </div>
-        <div class="seo-col">
-          <h3>Use case terms</h3>
-          <p>Make practical graphics for matchday planning, social posts, previews and tactical notes.</p>
-          <ul><li>starting XI builder</li><li>football team sheet</li><li>soccer tactics board</li><li>football lineup graphic</li></ul>
-        </div>
-        <div class="seo-col">
-          <h3>Formation terms</h3>
-          <p>Build common football formations and compare how different shapes change your setup.</p>
-          <ul><li>4-3-3 formation builder</li><li>4-4-2 lineup builder</li><li>4-2-3-1 formation creator</li><li>3-5-2 formation</li></ul>
-        </div>
-      </div>
+      </a>
     </section>
 
     <!-- FAQ -->
     <section class="block wrap reveal" id="faq">
       <div class="eyebrow">FAQ</div>
-      <h2 class="sec">Football lineup builder FAQ</h2>
+      <h2 class="sec" data-i18n="faq_title">Football lineup builder FAQ</h2>
       <div class="faq">
-        <details><summary>What is a football lineup builder?</summary><p>A football lineup builder is an online tool for placing players on a pitch, choosing a formation, and creating a visual team sheet or starting XI graphic. Xilytics does this directly in your browser, with real club kit colors, flags and substitutes.</p></details>
-        <details><summary>Can I create a soccer formation for free?</summary><p>Yes. Xilytics is a free soccer formation creator. You can build and customize a full team lineup with no sign-up and no payment.</p></details>
-        <details><summary>Which football formations can I use?</summary><p>Xilytics supports popular formations including 4-3-3, 4-4-2, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2 and many more common football tactics.</p></details>
-        <details><summary>Can I export my lineup as an image?</summary><p>Yes. After building your football lineup you can save the team graphic as a high-resolution PNG image with your team crest, ready to share on social media.</p></details>
-        <details><summary>Can I make a Starting XI graphic?</summary><p>Yes. Xilytics is designed for starting XI graphics, matchday lineups, fantasy squads and tactical previews.</p></details>
-        <details><summary>Can I customize player names, numbers, kits and flags?</summary><p>Yes. Click any player to edit their name and number, add their country flag, link multiple substitutes, and choose real club kit colors and patterns.</p></details>
-        <details><summary>Does it work in my language?</summary><p>Yes. Xilytics is available in 7 languages: Türkçe, English, Español, Deutsch, Français, Português and Italiano.</p></details>
+        <details><summary data-i18n="faq_q1">What is a football lineup builder?</summary><p data-i18n="faq_a1">A football lineup builder is an online tool for placing players on a pitch, choosing a formation, and creating a visual team sheet or starting XI graphic. Xilytics does this directly in your browser, with real club kit colors, flags and substitutes.</p></details>
+        <details><summary data-i18n="faq_q2">Can I create a soccer formation for free?</summary><p data-i18n="faq_a2">Yes. Xilytics is a free soccer formation creator. You can build and customize a full team lineup with no sign-up and no payment.</p></details>
+        <details><summary data-i18n="faq_q3">Which football formations can I use?</summary><p data-i18n="faq_a3">Xilytics supports popular formations including 4-3-3, 4-4-2, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2 and many more common football tactics.</p></details>
+        <details><summary data-i18n="faq_q4">Can I export my lineup as an image?</summary><p data-i18n="faq_a4">Yes. After building your football lineup you can save the team graphic as a high-resolution PNG image with your team crest, ready to share on social media.</p></details>
+        <details><summary data-i18n="faq_q5">Can I make a Starting XI graphic?</summary><p data-i18n="faq_a5">Yes. Xilytics is designed for starting XI graphics, matchday lineups, fantasy squads and tactical previews.</p></details>
+        <details><summary data-i18n="faq_q6">Can I customize player names, numbers, kits and flags?</summary><p data-i18n="faq_a6">Yes. Click any player to edit their name and number, add their country flag, link multiple substitutes, and choose real club kit colors and patterns.</p></details>
+        <details><summary data-i18n="faq_q7">Does it work in my language?</summary><p data-i18n="faq_a7">Yes. Xilytics is available in 7 languages: Türkçe, English, Español, Deutsch, Français, Português and Italiano.</p></details>
       </div>
     </section>
 
@@ -352,7 +352,7 @@
 
   const I18N={
     tr:{name:"Türkçe",code:"TR",
-      nav_features:"Özellikler",nav_how:"Nasıl çalışır",nav_soon:"Yakında",nav_open:"Aracı Aç",lang_title:"Dil / Language",
+      nav_features:"Özellikler",nav_how:"Nasıl çalışır",nav_formations:"Dizilişler",nav_soon:"Yakında",nav_open:"Aracı Aç",lang_title:"Dil / Language",
       hero_pill:"Futbol diziliş oluşturucu",hero_title:'Takımının <span class="hl">ilk 11\'ini</span><br>saniyeler içinde kur',
       hero_sub:"Sürükle-bırak oyuncular, gerçek kulüp renkleri ve desenleri, bayraklar, çok katmanlı yedek kadrosu ve tek tıkla PNG çıktısı. Kayıt yok, kurulum yok.",
       hero_cta1:"Dizilişini Oluştur →",hero_cta2:"Nasıl çalışır",hero_m1:"8 lig · 120+ kulüp rengi",hero_m2:"7 dil desteği",hero_m3:"Tamamen ücretsiz",
@@ -369,9 +369,9 @@
       s3_t:"Kaydet & paylaş",s3_d:"Tek tıkla PNG indir, sosyal medyada paylaş ya da arkadaşlarına gönder.",
       soon_eyebrow:"Yol haritası",soon_title:"Yakında: Futbol İstatistikleri",soon_sub:'Xilytics büyüyor. Diziliş aracının yanına derinlemesine futbol verisi ve analiz katmanları geliyor — adı boşuna "analytics" değil.',
       cta_title:"Dizilişini kurmaya hazır mısın?",cta_sub:"Kayıt yok, ücret yok. Aç ve takımını tasarlamaya başla.",cta_btn:"Aracı Aç →",
-      foot_tag:"© 2026 xilytics.com · İlk 11 & Diziliş Oluşturucu"},
+      about_eyebrow:"Dizilişler",about_title:"Tüm dizilişler, tek dokunuş uzağında",about_sub:"Klasik 4-4-2'den hücumcu 3-4-3'e, sağlam 5-4-1'e kadar Xilytics tüm popüler futbol dizilişlerini kapsar. Bir şekil seç, oyuncularını yerleştir, takımının anında şekillendiğini gör.",about_guide_t:"Diziliş rehberini keşfet",about_guide_d:"17 dizilişin tamamı şemalarıyla açıklanıyor — güçlü yönleri, mantığı ve ne zaman kullanılacağı.",about_faq_title:"Diziliş oluşturucu — Sık Sorulanlar",faq_q1:"Futbol diziliş oluşturucu nedir?",faq_a1:"Futbol diziliş oluşturucu; oyuncuları sahaya yerleştirip diziliş seçerek görsel bir kadro veya ilk 11 grafiği oluşturmaya yarayan online bir araçtır. Xilytics bunu doğrudan tarayıcında, gerçek kulüp renkleri, bayraklar ve yedeklerle yapar.",faq_q2:"Ücretsiz diziliş oluşturabilir miyim?",faq_a2:"Evet. Xilytics ücretsiz bir diziliş oluşturucudur. Kayıt ve ödeme gerekmeden tam bir kadro kurup özelleştirebilirsin.",faq_q3:"Hangi dizilişleri kullanabilirim?",faq_a3:"Xilytics; 4-3-3, 4-4-2, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2 ve daha birçok popüler dizilişi destekler.",faq_q4:"Dizilişimi resim olarak indirebilir miyim?",faq_a4:"Evet. Dizilişini kurduktan sonra takım armanla birlikte yüksek çözünürlüklü bir PNG olarak kaydedip sosyal medyada paylaşabilirsin.",faq_q5:"İlk 11 grafiği yapabilir miyim?",faq_a5:"Evet. Xilytics; ilk 11 grafikleri, maç günü dizilişleri, fantezi kadrolar ve taktik önizlemeleri için tasarlandı.",faq_q6:"Oyuncu adı, numara, forma ve bayrak değiştirebilir miyim?",faq_a6:"Evet. Herhangi bir oyuncuya tıklayarak adını ve numarasını düzenle, ülke bayrağını ekle, birden fazla yedek bağla ve gerçek kulüp renk ve desenlerini seç.",faq_q7:"Kendi dilimde çalışıyor mu?",faq_a7:"Evet. Xilytics 7 dilde sunulur: Türkçe, English, Español, Deutsch, Français, Português ve Italiano.",foot_tag:"© 2026 xilytics.com · İlk 11 & Diziliş Oluşturucu"},
     en:{name:"English",code:"EN",
-      nav_features:"Features",nav_how:"How it works",nav_soon:"Coming soon",nav_open:"Open the tool",lang_title:"Language",
+      nav_features:"Features",nav_how:"How it works",nav_formations:"Formations",nav_soon:"Coming soon",nav_open:"Open the tool",lang_title:"Language",
       hero_pill:"Football lineup builder",hero_title:'Build your team\'s <span class="hl">starting XI</span><br>in seconds',
       hero_sub:"Drag-and-drop players, real club colors and patterns, flags, multi-layer substitutes and one-click PNG export. No sign-up, no setup.",
       hero_cta1:"Build your lineup →",hero_cta2:"How it works",hero_m1:"8 leagues · 120+ club colors",hero_m2:"7 languages",hero_m3:"Completely free",
@@ -388,9 +388,9 @@
       s3_t:"Save & share",s3_d:"Export a PNG in one click, share on social media or send to friends.",
       soon_eyebrow:"Roadmap",soon_title:"Coming soon: Football Stats",soon_sub:'Xilytics is growing. Deep football data and analysis layers are coming alongside the lineup tool — the name isn\'t "analytics" for nothing.',
       cta_title:"Ready to build your lineup?",cta_sub:"No sign-up, no fees. Open it and start designing your team.",cta_btn:"Open the tool →",
-      foot_tag:"© 2026 xilytics.com · Starting XI & Lineup Builder"},
+      about_eyebrow:"Formations",about_title:"Every formation, one tap away",about_sub:"From the classic 4-4-2 to the attacking 3-4-3 and the rock-solid 5-4-1, Xilytics covers all the popular football formations. Pick a shape, place your players, and see your team come together instantly.",about_guide_t:"Explore the formations guide",about_guide_d:"See all 17 formations explained with diagrams — their strengths, ideas and when to use them.",about_faq_title:"Football lineup builder FAQ",faq_q1:"What is a football lineup builder?",faq_a1:"A football lineup builder is an online tool for placing players on a pitch, choosing a formation, and creating a visual team sheet or starting XI graphic. Xilytics does this directly in your browser, with real club kit colors, flags and substitutes.",faq_q2:"Can I create a soccer formation for free?",faq_a2:"Yes. Xilytics is a free soccer formation creator. You can build and customize a full team lineup with no sign-up and no payment.",faq_q3:"Which football formations can I use?",faq_a3:"Xilytics supports popular formations including 4-3-3, 4-4-2, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2 and many more common football tactics.",faq_q4:"Can I export my lineup as an image?",faq_a4:"Yes. After building your football lineup you can save the team graphic as a high-resolution PNG image with your team crest, ready to share on social media.",faq_q5:"Can I make a Starting XI graphic?",faq_a5:"Yes. Xilytics is designed for starting XI graphics, matchday lineups, fantasy squads and tactical previews.",faq_q6:"Can I customize player names, numbers, kits and flags?",faq_a6:"Yes. Click any player to edit their name and number, add their country flag, link multiple substitutes, and choose real club kit colors and patterns.",faq_q7:"Does it work in my language?",faq_a7:"Yes. Xilytics is available in 7 languages: Türkçe, English, Español, Deutsch, Français, Português and Italiano.",foot_tag:"© 2026 xilytics.com · Starting XI & Lineup Builder"},
     es:{name:"Español",code:"ES",
-      nav_features:"Características",nav_how:"Cómo funciona",nav_soon:"Próximamente",nav_open:"Abrir la herramienta",lang_title:"Idioma",
+      nav_features:"Características",nav_how:"Cómo funciona",nav_formations:"Formaciones",nav_soon:"Próximamente",nav_open:"Abrir la herramienta",lang_title:"Idioma",
       hero_pill:"Creador de alineaciones",hero_title:'Crea el <span class="hl">once inicial</span> de<br>tu equipo en segundos',
       hero_sub:"Jugadores arrastrables, colores y patrones reales de clubes, banderas, suplentes en varias capas y exportación PNG con un clic. Sin registro, sin instalación.",
       hero_cta1:"Crea tu alineación →",hero_cta2:"Cómo funciona",hero_m1:"8 ligas · 120+ colores de club",hero_m2:"7 idiomas",hero_m3:"Totalmente gratis",
@@ -407,9 +407,9 @@
       s3_t:"Guardar y compartir",s3_d:"Exporta un PNG con un clic, compártelo en redes o envíalo a tus amigos.",
       soon_eyebrow:"Hoja de ruta",soon_title:"Próximamente: Estadísticas",soon_sub:'Xilytics crece. Llegan capas de datos y análisis de fútbol junto a la herramienta — no se llama "analytics" por nada.',
       cta_title:"¿Listo para crear tu alineación?",cta_sub:"Sin registro, sin pagos. Ábrela y empieza a diseñar tu equipo.",cta_btn:"Abrir la herramienta →",
-      foot_tag:"© 2026 xilytics.com · Once inicial y creador de alineaciones"},
+      about_eyebrow:"Formaciones",about_title:"Cada formación, a un toque",about_sub:"Del clásico 4-4-2 al ofensivo 3-4-3 y al sólido 5-4-1, Xilytics cubre todas las formaciones populares. Elige una, coloca a tus jugadores y ve a tu equipo tomar forma al instante.",about_guide_t:"Explora la guía de formaciones",about_guide_d:"Las 17 formaciones explicadas con diagramas: sus fortalezas, su idea y cuándo usarlas.",about_faq_title:"Preguntas frecuentes",faq_q1:"¿Qué es un creador de alineaciones?",faq_a1:"Es una herramienta online para colocar jugadores en el campo, elegir una formación y crear un gráfico visual del once inicial. Xilytics lo hace directamente en tu navegador, con colores reales de clubes, banderas y suplentes.",faq_q2:"¿Puedo crear una formación gratis?",faq_a2:"Sí. Xilytics es un creador de formaciones gratuito. Puedes crear y personalizar una alineación completa sin registro ni pago.",faq_q3:"¿Qué formaciones puedo usar?",faq_a3:"Xilytics admite formaciones populares como 4-3-3, 4-4-2, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2 y muchas más.",faq_q4:"¿Puedo exportar mi alineación como imagen?",faq_a4:"Sí. Tras crear tu alineación puedes guardarla como una imagen PNG en alta resolución con el escudo de tu equipo, lista para compartir.",faq_q5:"¿Puedo crear un gráfico del once inicial?",faq_a5:"Sí. Xilytics está diseñado para gráficos del once inicial, alineaciones, equipos fantasy y previas tácticas.",faq_q6:"¿Puedo personalizar nombres, dorsales, camisetas y banderas?",faq_a6:"Sí. Toca cualquier jugador para editar su nombre y dorsal, añadir la bandera de su país, vincular varios suplentes y elegir colores y patrones reales de clubes.",faq_q7:"¿Funciona en mi idioma?",faq_a7:"Sí. Xilytics está disponible en 7 idiomas: Türkçe, English, Español, Deutsch, Français, Português e Italiano.",foot_tag:"© 2026 xilytics.com · Once inicial y creador de alineaciones"},
     de:{name:"Deutsch",code:"DE",
-      nav_features:"Funktionen",nav_how:"So funktioniert's",nav_soon:"Demnächst",nav_open:"Tool öffnen",lang_title:"Sprache",
+      nav_features:"Funktionen",nav_how:"So funktioniert's",nav_formations:"Formationen",nav_soon:"Demnächst",nav_open:"Tool öffnen",lang_title:"Sprache",
       hero_pill:"Aufstellungs-Generator",hero_title:'Stell die <span class="hl">Startelf</span> deines<br>Teams in Sekunden auf',
       hero_sub:"Spieler per Drag-and-Drop, echte Vereinsfarben und -muster, Flaggen, mehrschichtige Ersatzbank und PNG-Export mit einem Klick. Keine Anmeldung, keine Einrichtung.",
       hero_cta1:"Aufstellung erstellen →",hero_cta2:"So funktioniert's",hero_m1:"8 Ligen · 120+ Vereinsfarben",hero_m2:"7 Sprachen",hero_m3:"Völlig kostenlos",
@@ -426,9 +426,9 @@
       s3_t:"Speichern & teilen",s3_d:"Mit einem Klick PNG exportieren, in sozialen Medien teilen oder an Freunde senden.",
       soon_eyebrow:"Roadmap",soon_title:"Demnächst: Fußball-Statistiken",soon_sub:'Xilytics wächst. Neben dem Aufstellungs-Tool kommen tiefe Fußballdaten und Analyse-Ebenen — nicht umsonst "analytics".',
       cta_title:"Bereit für deine Aufstellung?",cta_sub:"Keine Anmeldung, keine Gebühren. Öffnen und dein Team gestalten.",cta_btn:"Tool öffnen →",
-      foot_tag:"© 2026 xilytics.com · Startelf & Aufstellungs-Generator"},
+      about_eyebrow:"Formationen",about_title:"Jede Formation, ein Tippen entfernt",about_sub:"Vom klassischen 4-4-2 über das offensive 3-4-3 bis zum grundsoliden 5-4-1 deckt Xilytics alle gängigen Formationen ab. Wähle eine Form, platziere deine Spieler und sieh dein Team sofort entstehen.",about_guide_t:"Entdecke den Formations-Guide",about_guide_d:"Alle 17 Formationen mit Diagrammen erklärt — ihre Stärken, ihre Idee und wann man sie nutzt.",about_faq_title:"Häufig gestellte Fragen",faq_q1:"Was ist ein Aufstellungs-Generator?",faq_a1:"Ein Online-Tool, um Spieler auf dem Feld zu platzieren, eine Formation zu wählen und eine visuelle Startelf-Grafik zu erstellen. Xilytics macht das direkt im Browser, mit echten Vereinsfarben, Flaggen und Ersatzspielern.",faq_q2:"Kann ich eine Formation kostenlos erstellen?",faq_a2:"Ja. Xilytics ist ein kostenloser Formations-Generator. Du kannst eine komplette Aufstellung ohne Anmeldung und Bezahlung erstellen und anpassen.",faq_q3:"Welche Formationen kann ich nutzen?",faq_a3:"Xilytics unterstützt beliebte Formationen wie 4-3-3, 4-4-2, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2 und viele mehr.",faq_q4:"Kann ich meine Aufstellung als Bild exportieren?",faq_a4:"Ja. Nach dem Erstellen kannst du die Grafik mit deinem Vereinswappen als hochauflösendes PNG speichern und teilen.",faq_q5:"Kann ich eine Startelf-Grafik erstellen?",faq_a5:"Ja. Xilytics ist für Startelf-Grafiken, Spieltags-Aufstellungen, Fantasy-Teams und taktische Vorschauen gemacht.",faq_q6:"Kann ich Namen, Nummern, Trikots und Flaggen anpassen?",faq_a6:"Ja. Tippe auf einen Spieler, um Name und Nummer zu bearbeiten, die Landesflagge hinzuzufügen, mehrere Ersatzspieler zu verknüpfen und echte Vereinsfarben zu wählen.",faq_q7:"Funktioniert es in meiner Sprache?",faq_a7:"Ja. Xilytics ist in 7 Sprachen verfügbar: Türkçe, English, Español, Deutsch, Français, Português und Italiano.",foot_tag:"© 2026 xilytics.com · Startelf & Aufstellungs-Generator"},
     fr:{name:"Français",code:"FR",
-      nav_features:"Fonctionnalités",nav_how:"Comment ça marche",nav_soon:"Bientôt",nav_open:"Ouvrir l'outil",lang_title:"Langue",
+      nav_features:"Fonctionnalités",nav_how:"Comment ça marche",nav_formations:"Formations",nav_soon:"Bientôt",nav_open:"Ouvrir l'outil",lang_title:"Langue",
       hero_pill:"Créateur de compositions",hero_title:'Composez le <span class="hl">onze de départ</span><br>de votre équipe en secondes',
       hero_sub:"Joueurs en glisser-déposer, vraies couleurs et motifs de clubs, drapeaux, remplaçants multi-niveaux et export PNG en un clic. Sans inscription, sans installation.",
       hero_cta1:"Créer votre composition →",hero_cta2:"Comment ça marche",hero_m1:"8 ligues · 120+ couleurs de clubs",hero_m2:"7 langues",hero_m3:"Entièrement gratuit",
@@ -445,9 +445,9 @@
       s3_t:"Enregistrer & partager",s3_d:"Exportez un PNG en un clic, partagez sur les réseaux ou envoyez à vos amis.",
       soon_eyebrow:"Feuille de route",soon_title:"Bientôt : Statistiques football",soon_sub:'Xilytics grandit. Des couches de données et d\'analyse arrivent à côté de l\'outil — ce n\'est pas "analytics" pour rien.',
       cta_title:"Prêt à créer votre composition ?",cta_sub:"Sans inscription, sans frais. Ouvrez et commencez à concevoir votre équipe.",cta_btn:"Ouvrir l'outil →",
-      foot_tag:"© 2026 xilytics.com · Onze de départ & créateur de compositions"},
+      about_eyebrow:"Formations",about_title:"Chaque formation, à portée de clic",about_sub:"Du classique 4-4-2 au 3-4-3 offensif et au très solide 5-4-1, Xilytics couvre toutes les formations populaires. Choisissez une forme, placez vos joueurs et voyez votre équipe prendre vie.",about_guide_t:"Découvrez le guide des formations",about_guide_d:"Les 17 formations expliquées avec des schémas : leurs forces, leur idée et quand les utiliser.",about_faq_title:"Foire aux questions",faq_q1:"Qu'est-ce qu'un créateur de compositions ?",faq_a1:"C'est un outil en ligne pour placer les joueurs sur le terrain, choisir une formation et créer un visuel du onze de départ. Xilytics le fait directement dans votre navigateur, avec de vraies couleurs de clubs, des drapeaux et des remplaçants.",faq_q2:"Puis-je créer une formation gratuitement ?",faq_a2:"Oui. Xilytics est un créateur de formations gratuit. Vous pouvez créer et personnaliser une composition complète sans inscription ni paiement.",faq_q3:"Quelles formations puis-je utiliser ?",faq_a3:"Xilytics prend en charge des formations populaires comme 4-3-3, 4-4-2, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2 et bien d'autres.",faq_q4:"Puis-je exporter ma composition en image ?",faq_a4:"Oui. Après l'avoir créée, enregistrez-la en PNG haute résolution avec l'écusson de votre équipe, prête à partager.",faq_q5:"Puis-je créer un visuel du onze de départ ?",faq_a5:"Oui. Xilytics est conçu pour les visuels de onze de départ, les compositions, les équipes fantasy et les avant-matchs tactiques.",faq_q6:"Puis-je personnaliser noms, numéros, maillots et drapeaux ?",faq_a6:"Oui. Cliquez sur un joueur pour modifier son nom et son numéro, ajouter le drapeau de son pays, lier plusieurs remplaçants et choisir de vraies couleurs de clubs.",faq_q7:"Fonctionne-t-il dans ma langue ?",faq_a7:"Oui. Xilytics est disponible en 7 langues : Türkçe, English, Español, Deutsch, Français, Português et Italiano.",foot_tag:"© 2026 xilytics.com · Onze de départ & créateur de compositions"},
     pt:{name:"Português",code:"PT",
-      nav_features:"Funcionalidades",nav_how:"Como funciona",nav_soon:"Em breve",nav_open:"Abrir a ferramenta",lang_title:"Idioma",
+      nav_features:"Funcionalidades",nav_how:"Como funciona",nav_formations:"Formações",nav_soon:"Em breve",nav_open:"Abrir a ferramenta",lang_title:"Idioma",
       hero_pill:"Criador de escalações",hero_title:'Monta o <span class="hl">onze inicial</span> da<br>tua equipa em segundos',
       hero_sub:"Jogadores arrastáveis, cores e padrões reais de clubes, bandeiras, suplentes em várias camadas e exportação PNG num clique. Sem registo, sem instalação.",
       hero_cta1:"Cria a tua escalação →",hero_cta2:"Como funciona",hero_m1:"8 ligas · 120+ cores de clubes",hero_m2:"7 idiomas",hero_m3:"Totalmente grátis",
@@ -464,9 +464,9 @@
       s3_t:"Guardar e partilhar",s3_d:"Exporta um PNG num clique, partilha nas redes ou envia aos amigos.",
       soon_eyebrow:"Roteiro",soon_title:"Em breve: Estatísticas",soon_sub:'A Xilytics está a crescer. Camadas de dados e análise de futebol chegam junto da ferramenta — não é "analytics" por acaso.',
       cta_title:"Pronto para criar a tua escalação?",cta_sub:"Sem registo, sem custos. Abre e começa a desenhar a tua equipa.",cta_btn:"Abrir a ferramenta →",
-      foot_tag:"© 2026 xilytics.com · Onze inicial & criador de escalações"},
+      about_eyebrow:"Formações",about_title:"Cada formação, a um toque",about_sub:"Do clássico 4-4-2 ao ofensivo 3-4-3 e ao sólido 5-4-1, o Xilytics cobre todas as formações populares. Escolhe uma, posiciona os jogadores e vê a equipa ganhar forma na hora.",about_guide_t:"Explora o guia de formações",about_guide_d:"As 17 formações explicadas com diagramas — os pontos fortes, a ideia e quando usar.",about_faq_title:"Perguntas frequentes",faq_q1:"O que é um criador de escalações?",faq_a1:"É uma ferramenta online para colocar jogadores no campo, escolher uma formação e criar um gráfico do onze inicial. O Xilytics faz isto diretamente no navegador, com cores reais de clubes, bandeiras e suplentes.",faq_q2:"Posso criar uma formação grátis?",faq_a2:"Sim. O Xilytics é um criador de formações gratuito. Podes criar e personalizar uma escalação completa sem registo nem pagamento.",faq_q3:"Que formações posso usar?",faq_a3:"O Xilytics suporta formações populares como 4-3-3, 4-4-2, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2 e muitas mais.",faq_q4:"Posso exportar a escalação como imagem?",faq_a4:"Sim. Depois de criada, guarda-a como PNG de alta resolução com o emblema da equipa, pronta a partilhar.",faq_q5:"Posso criar um gráfico do onze inicial?",faq_a5:"Sim. O Xilytics foi feito para gráficos do onze inicial, escalações, equipas fantasy e antevisões táticas.",faq_q6:"Posso personalizar nomes, números, camisolas e bandeiras?",faq_a6:"Sim. Toca num jogador para editar o nome e número, adicionar a bandeira do país, ligar vários suplentes e escolher cores reais de clubes.",faq_q7:"Funciona no meu idioma?",faq_a7:"Sim. O Xilytics está disponível em 7 idiomas: Türkçe, English, Español, Deutsch, Français, Português e Italiano.",foot_tag:"© 2026 xilytics.com · Onze inicial & criador de escalações"},
     it:{name:"Italiano",code:"IT",
-      nav_features:"Funzionalità",nav_how:"Come funziona",nav_soon:"Prossimamente",nav_open:"Apri lo strumento",lang_title:"Lingua",
+      nav_features:"Funzionalità",nav_how:"Come funziona",nav_formations:"Formazioni",nav_soon:"Prossimamente",nav_open:"Apri lo strumento",lang_title:"Lingua",
       hero_pill:"Creatore di formazioni",hero_title:'Crea l\'<span class="hl">undici titolare</span><br>della tua squadra in secondi',
       hero_sub:"Giocatori con trascina-e-rilascia, colori e motivi reali dei club, bandiere, riserve a più livelli ed esportazione PNG con un clic. Senza registrazione, senza installazione.",
       hero_cta1:"Crea la tua formazione →",hero_cta2:"Come funziona",hero_m1:"8 leghe · 120+ colori di club",hero_m2:"7 lingue",hero_m3:"Completamente gratis",
@@ -483,7 +483,7 @@
       s3_t:"Salva e condividi",s3_d:"Esporta un PNG con un clic, condividi sui social o invia agli amici.",
       soon_eyebrow:"Roadmap",soon_title:"Prossimamente: Statistiche",soon_sub:'Xilytics cresce. Accanto allo strumento arrivano dati e analisi calcistiche approfondite — non si chiama "analytics" per caso.',
       cta_title:"Pronto a creare la tua formazione?",cta_sub:"Senza registrazione, senza costi. Aprilo e inizia a disegnare la tua squadra.",cta_btn:"Apri lo strumento →",
-      foot_tag:"© 2026 xilytics.com · Undici titolare & creatore di formazioni"}
+      about_eyebrow:"Formazioni",about_title:"Ogni formazione, a un tocco",about_sub:"Dal classico 4-4-2 all'offensivo 3-4-3 fino al solido 5-4-1, Xilytics copre tutte le formazioni popolari. Scegli una forma, posiziona i giocatori e guarda la squadra prendere vita.",about_guide_t:"Esplora la guida alle formazioni",about_guide_d:"Tutte le 17 formazioni spiegate con diagrammi — punti di forza, idea e quando usarle.",about_faq_title:"Domande frequenti",faq_q1:"Cos'è un creatore di formazioni?",faq_a1:"È uno strumento online per posizionare i giocatori in campo, scegliere una formazione e creare una grafica dell'undici titolare. Xilytics lo fa direttamente nel browser, con colori reali dei club, bandiere e riserve.",faq_q2:"Posso creare una formazione gratis?",faq_a2:"Sì. Xilytics è un creatore di formazioni gratuito. Puoi creare e personalizzare una formazione completa senza registrazione né pagamento.",faq_q3:"Quali formazioni posso usare?",faq_a3:"Xilytics supporta formazioni popolari come 4-3-3, 4-4-2, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2 e molte altre.",faq_q4:"Posso esportare la formazione come immagine?",faq_a4:"Sì. Dopo averla creata, salvala come PNG ad alta risoluzione con lo stemma della squadra, pronta da condividere.",faq_q5:"Posso creare una grafica dell'undici titolare?",faq_a5:"Sì. Xilytics è progettato per grafiche dell'undici titolare, formazioni, squadre fantasy e anteprime tattiche.",faq_q6:"Posso personalizzare nomi, numeri, maglie e bandiere?",faq_a6:"Sì. Tocca un giocatore per modificarne nome e numero, aggiungere la bandiera del paese, collegare più riserve e scegliere colori reali dei club.",faq_q7:"Funziona nella mia lingua?",faq_a7:"Sì. Xilytics è disponibile in 7 lingue: Türkçe, English, Español, Deutsch, Français, Português e Italiano.",foot_tag:"© 2026 xilytics.com · Undici titolare & creatore di formazioni"}
   };
 
   let LANG='tr';
