@@ -1,23 +1,28 @@
-# Xilytics — İlk 11 & Diziliş Oluşturucu
+# Xilytics — Football Lineup Builder
 
-Statik web sitesi. Backend gerekmez.
+Statik web sitesi. Backend gerekmez. Tum dosyalar repo KOKUNE yuklenmeli.
 
-## Dosyalar
-- `index.html` — açılış / landing sayfası (7 dilli)
-- `app.html` — diziliş aracı
-- `xilytics-favicon.svg` — tarayıcı sekmesi ikonu
-- `xilytics-icon-dark.svg`, `xilytics-wordmark-*.svg`, `xilytics-avatar.svg` — logo varyantları
+## SAYFALAR
+- index.html        -> Acilis (landing), 7 dil
+- app.html          -> Dizilis araci (17 formasyon)
+- formations.html   -> Tum dizilisler rehberi
 
-## Yayınlama (GitHub Pages)
-1. Bu dosyaları repo'ya yükle (hepsi kök dizinde olmalı).
-2. Settings → Pages → Source: Branch `main`, klasör `/ (root)` → Save.
-3. Birkaç dakika sonra `https://kullanici.github.io/repo/` adresinde yayında.
+## SEO
+- sitemap.xml       -> Google Search Console'a "sitemap.xml" olarak bildir
+- robots.txt        -> arama motoru izinleri
 
-## Alan adı (xilytics.com)
-Settings → Pages → Custom domain: `xilytics.com`
-Namecheap → Advanced DNS:
-- A kayıtları: 185.199.108.153 / 109.153 / 110.153 / 111.153
-- CNAME: www → kullanici.github.io
-GitHub Pages'te "Enforce HTTPS" işaretle.
+## LOGO / IKON
+- xilytics-favicon.svg       (tarayici sekme ikonu)
+- xilytics-icon-dark.svg     (app ikonu)
+- xilytics-wordmark-dark.svg / -light.svg  (yazi logo)
+- xilytics-avatar.svg        (sosyal medya profil)
 
-Not: Tüm dosyalar aynı klasörde olmalı; isimlerini değiştirme.
+## YAYINLAMA (GitHub Pages)
+1. Bu klasordeki TUM dosyalari repo kokune yukle (eskilerin uzerine yaz).
+2. Settings -> Pages -> Branch: main, klasor: / (root) -> Save.
+3. Custom domain: xilytics.com (zaten bagli).
+
+## NOT
+- Dosyalar minify (sikistirilmis) edilmistir; isimleri DEGISTIRME.
+- Eski 4-3-3.html / 4-4-2.html / 4-2-3-1.html varsa repo'dan SIL (artik formations.html var).
+- Duzenlenebilir kaynak dosyalar (index.src.html, app.src.html) repoya YUKLENMEZ; sende master olarak kalir.
