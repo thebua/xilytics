@@ -20,7 +20,15 @@ let pool;
 export function db() {
   if (!pool) {
     if (!process.env.DATABASE_URL) {
-      throw new Error("DATABASE_URL is not set");
+      /*
+       * Thrown rather than returned so the caller's try/catch turns it into
+       * a readable 500 instead of the platform's bare "function crashed",
+       * which says nothing about which of half a dozen things went wrong.
+       */
+      throw new Error(
+        "DATABASE_URL is not set — add it under Project Settings, " +
+        "Environment Variables, then redeploy"
+      );
     }
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
