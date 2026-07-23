@@ -119,7 +119,13 @@ export async function GET(request) {
       e.minutes, e.appearances, e.rating, e.goals, e.assists,
       e.score, e.score_adj, e.pool_size, e.coverage,
       e.role_label, e.role_kind,
-      e.percentiles, e.themes, e.role_fit, e.role_quality,
+      /*
+       * Both the raw figures and their percentiles. The table can show
+       * either — "Rankings" reads the percentile, "Figures" the value —
+       * and a cell with only one of them renders blank, which is what
+       * happened when this carried percentiles alone.
+       */
+      e.metric_values, e.percentiles, e.themes, e.role_fit, e.role_quality,
       p.name, p.image, p.nationality, p.nat_code, p.nat_flag, p.foot,
       count(*) over () as total
     from entries e
