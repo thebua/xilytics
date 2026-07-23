@@ -6,9 +6,6 @@
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "access-control-allow-origin", "value": "https://xilytics.com" },
-        { "key": "access-control-allow-headers", "value": "authorization, content-type" },
-        { "key": "access-control-allow-methods", "value": "GET, OPTIONS" },
         { "key": "vary", "value": "authorization" }
       ]
     },
