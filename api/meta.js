@@ -107,6 +107,7 @@ export async function GET(request) {
         units: payload.units,
         help: payload.help,
         invert: payload.invert,
+        groups: payload.groups,
         themes: payload.themes,
         columns: payload.columns,
         roles: payload.roles,
@@ -114,6 +115,10 @@ export async function GET(request) {
         positions: payload.positions,
         order: payload.order,
         tierNames: payload.tierNames,
+        strength: payload.strength,
+        strengthSeen: payload.strengthSeen,
+        strengthMoves: payload.strengthMoves,
+        strengthFit: payload.strengthFit,
         imgbase: payload.imgbase,
       },
       { cache: who ? PRIVATE_CACHE : PUBLIC_CACHE }
