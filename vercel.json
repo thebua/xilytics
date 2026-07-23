@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "access-control-allow-origin", "value": "https://xilytics.com" },
+        { "key": "access-control-allow-headers", "value": "authorization, content-type" },
+        { "key": "access-control-allow-methods", "value": "GET, OPTIONS" },
+        { "key": "vary", "value": "authorization" }
+      ]
+    },
+    {
+      "source": "/scout/assets/(.*)",
+      "headers": [
+        { "key": "cache-control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ]
+}
