@@ -101,7 +101,15 @@ export async function GET(request) {
 
   const sortCol = SORTS[qs.get("sort")] || SORTS.score;
   const dir = qs.get("dir") === "asc" ? "asc" : "desc";
-  const limit = clamp(intParam(qs.get("limit"), 25) ?? 25, 1, 100);
+  /*
+   * A page caps at 100 for a table, but the interface keeps a whole
+   * position in memory and filters there, so it asks for the lot in one
+   * go. Fetching that in hundred-row pages meant twenty to sixty round
+   * trips per position change — seconds of waiting for data that fits in
+   * a single response. The ceiling is generous rather than unlimited:
+   * the largest position in the largest tier is under seven thousand.
+   */
+  const limit = clamp(intParam(qs.get("limit"), 25) ?? 25, 1, 10000);
   const page = Math.max(1, intParam(qs.get("page"), 1) ?? 1);
   const offset = (page - 1) * limit;
 
@@ -136,11 +144,13 @@ export async function GET(request) {
   `;
 
   let result;
+  const started = Date.now();
   try {
     result = await db().query(sql, args);
   } catch (err) {
     return fail(`query failed: ${err.message}`, 500);
   }
+  const took = Date.now() - started;
 
   const total = result.rows.length ? Number(result.rows[0].total) : 0;
   const rows = result.rows.map(({ total: _t, ...r }) => r);
@@ -151,7 +161,7 @@ export async function GET(request) {
    * same for everyone and can be held at the edge.
    */
   return json(
-    { rows, total, page, limit, pages: Math.ceil(total / limit) },
+    { rows, total, page, limit, pages: Math.ceil(total / limit), ms: took },
     { cache: who ? PRIVATE_CACHE : PUBLIC_CACHE }
   );
 }
