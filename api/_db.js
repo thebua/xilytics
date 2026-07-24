@@ -63,13 +63,23 @@ export const PUBLIC_CACHE =
 export const PRIVATE_CACHE = "private, no-store";
 
 export function json(data, { status = 200, cache = PUBLIC_CACHE } = {}) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": cache,
-    },
-  });
+  const headers = {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": cache,
+  };
+  /*
+   * Vary travels with the private responses only.
+   *
+   * It used to be set on every /api route in vercel.json, which meant the
+   * CDN split its cache by a header the app does not even send — every
+   * request a MISS, every MISS a trip to the database. Attached here
+   * instead, a public answer is one answer for everyone and caches
+   * properly, while anything keyed to a signed-in user still tells the
+   * CDN not to share it.
+   */
+  if (cache === PRIVATE_CACHE) headers.vary = "authorization";
+
+  return new Response(JSON.stringify(data), { status, headers });
 }
 
 export function fail(message, status = 400) {

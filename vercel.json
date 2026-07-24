@@ -1,14 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
-  "trailingSlash": false,
   "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "vary", "value": "authorization" }
-      ]
-    },
     {
       "source": "/scout/assets/(.*)",
       "headers": [

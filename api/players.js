@@ -116,9 +116,17 @@ export async function GET(request) {
   const clause = where.join(" and ");
 
   /*
-   * Count and page in one round trip. The window function counts the whole
-   * filtered set while the limit still applies to what comes back, which
-   * saves running the filter twice.
+   * Two things used to make this slow.
+   *
+   * `count(*) over ()` computed the total on every row. When the caller
+   * asks for a whole position — which the interface always does — the
+   * total is just the number of rows returned, so the window function was
+   * counting something we already knew.
+   *
+   * The tiebreak used to be `p.name`, which meant sorting on a joined
+   * table and gave up the index on (pos, score). Ties break on the entry
+   * id instead: arbitrary, but stable, and it lets the planner walk the
+   * index in order rather than sorting six thousand rows.
    */
   const sql = `
     select
@@ -127,19 +135,12 @@ export async function GET(request) {
       e.minutes, e.appearances, e.rating, e.goals, e.assists,
       e.score, e.score_adj, e.pool_size, e.coverage,
       e.role_label, e.role_kind,
-      /*
-       * Both the raw figures and their percentiles. The table can show
-       * either — "Rankings" reads the percentile, "Figures" the value —
-       * and a cell with only one of them renders blank, which is what
-       * happened when this carried percentiles alone.
-       */
       e.metric_values, e.percentiles, e.themes, e.role_fit, e.role_quality,
-      p.name, p.image, p.nationality, p.nat_code, p.nat_flag, p.foot,
-      count(*) over () as total
+      p.name, p.image, p.nationality, p.nat_code, p.nat_flag, p.foot
     from entries e
     join players p on p.id = e.player_id
     where ${clause}
-    order by ${sortCol} ${dir} nulls last, p.name asc
+    order by ${sortCol} ${dir} nulls last, e.id asc
     limit ${limit} offset ${offset}
   `;
 
@@ -152,8 +153,14 @@ export async function GET(request) {
   }
   const took = Date.now() - started;
 
-  const total = result.rows.length ? Number(result.rows[0].total) : 0;
-  const rows = result.rows.map(({ total: _t, ...r }) => r);
+  const rows = result.rows;
+  /*
+   * With the window function gone, the total is what came back plus
+   * whatever was skipped. The interface asks for the whole position in
+   * one go, so this is the real count; if it ever pages, the last page
+   * is what tells it where the end is.
+   */
+  const total = offset + rows.length;
 
   /*
    * A signed-in member sees more than an anonymous visitor, so their
