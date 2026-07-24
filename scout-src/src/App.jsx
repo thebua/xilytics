@@ -123,6 +123,9 @@ export default function App() {
   const [profile, setProfile] = useState(null);
   const [search, setSearch] = useState("");
 
+  /* the banner above the table asks the masthead to open its dialog */
+  const [askSignIn, setAskSignIn] = useState(false);
+
   useEffect(() => {
     if (!authReady) return;
     let cancelled = false;
@@ -376,6 +379,8 @@ export default function App() {
             onSignIn={signIn}
             onSignOut={signOut}
             onOpenSaved={(tab) => { setSavedTab(tab); goTo("saved"); }}
+            askToSignIn={askSignIn}
+            onAsked={() => setAskSignIn(false)}
           />
         </div>
       </header>
@@ -393,6 +398,29 @@ export default function App() {
               <b>{Object.keys(meta.leagues).length}</b> leagues ·{" "}
               minimum <b>{meta.minMinutes}</b> minutes
             </div>
+
+            {/*
+              What is being withheld, said plainly.
+              A visitor sees three leagues and no reason to think there are
+              more — the shorter list looks like the whole product rather
+              than a sample of it, and nobody opens an account for something
+              they have not been told exists. The count comes from the API,
+              which knows what this particular caller cannot read, so it is
+              right for a signed-out visitor and absent for a member.
+            */}
+            {meta.lockedLeagues > 0 && (
+              <div className="locked-note">
+                <span className="locked-ico" aria-hidden="true">🔒</span>
+                <span className="locked-text">
+                  <b>{meta.lockedLeagues} more leagues</b> — the Championship,
+                  the Süper Lig, the Eredivisie and the rest — open with a
+                  free account.
+                </span>
+                <button className="locked-go" onClick={() => setAskSignIn(true)}>
+                  Sign in
+                </button>
+              </div>
+            )}
           </header>
         )}
         {view === "compare" && (

@@ -149,6 +149,75 @@
 
 main.wrap { padding-top: 22px; padding-bottom: 74px; }
 
+/* =====================================================================
+ * What a visitor is not being shown
+ * =====================================================================
+ * Three leagues look like the whole product unless something says
+ * otherwise. This sits under the page heading rather than over it: the
+ * table is what the visitor came for, and an offer that arrives before
+ * the goods reads as a toll gate.
+ *
+ * Accent-tinted rather than warning-coloured. Nothing has gone wrong —
+ * there is simply more, and it is free.
+ * ===================================================================== */
+.locked-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 11px 14px;
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  border: 1px solid rgba(202, 255, 63, 0.24);
+}
+
+.locked-ico {
+  flex: none;
+  font-size: 14px;
+  line-height: 1;
+  filter: grayscale(1) brightness(1.6);
+}
+
+.locked-text {
+  flex: 1;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--dim);
+}
+.locked-text b { color: var(--text); font-weight: 600; }
+
+.locked-go {
+  flex: none;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 7px 15px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--bg);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.14s;
+}
+.locked-go:hover { background: var(--accent-deep); }
+
+@media (max-width: 640px) {
+  /*
+   * On a phone the three parts will not share a line without the text
+   * collapsing to two words a row. The button goes underneath, full
+   * width, where it is also easier to hit.
+   */
+  .locked-note {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+  }
+  .locked-text { flex: 1 1 100%; order: 2; }
+  .locked-ico { order: 1; }
+  .locked-go { flex: 1 1 100%; order: 3; padding: 9px; }
+}
+
 /* ---- selection tray ---- */
 .tray {
   position: fixed;

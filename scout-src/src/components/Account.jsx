@@ -21,7 +21,9 @@ import "./account.css";
  * component above picks it up.
  */
 
-export default function Account({ user, onSignIn, onSignOut, onOpenSaved }) {
+export default function Account({
+  user, onSignIn, onSignOut, onOpenSaved, askToSignIn, onAsked,
+}) {
   const [dialog, setDialog] = useState(false);
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -49,6 +51,19 @@ export default function Account({ user, onSignIn, onSignOut, onOpenSaved }) {
     document.addEventListener("keydown", esc);
     return () => document.removeEventListener("keydown", esc);
   }, [dialog]);
+
+  /*
+   * The banner above the table also invites people to sign in, and the
+   * dialog it needs is this one. Rather than build a second copy there,
+   * the request travels down as a flag and is acknowledged straight away
+   * so a later close does not immediately reopen it.
+   */
+  useEffect(() => {
+    if (askToSignIn && !user) {
+      setDialog(true);
+      onAsked?.();
+    }
+  }, [askToSignIn, user, onAsked]);
 
   /* a stale error under a fresh dialog reads as a new failure */
   useEffect(() => {
