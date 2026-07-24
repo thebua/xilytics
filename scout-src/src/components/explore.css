@@ -53,6 +53,8 @@
 .sortbar { display: none; }
 .who-pick { display: none; }
 .sheet-veil, .sortsheet { display: none; }
+.quickbar { display: none; }
+.cardlist { display: none; }
 
 .fld { display: flex; flex-direction: column; gap: 6px; }
 .fld.wide { min-width: 160px; }
@@ -1115,4 +1117,393 @@ thead th.metric.adj-h { padding-right: 18px; }
     text-transform: uppercase;
     color: var(--faint);
   }
+}
+
+/* =====================================================================
+ *  The phone layout
+ * =====================================================================
+ *  Below 760px the ranking stops being a table. A table needs a header to
+ *  be read and a header needs width; what a phone has instead is depth,
+ *  so the same facts are stacked into a card and scrolled.
+ *
+ *  Three controls replace nine. Position and league change constantly —
+ *  strikers in Spain, then strikers in Italy — and everything else is set
+ *  once and left, so it folds behind a button that says how much of it is
+ *  on.
+ * ===================================================================== */
+
+@media (max-width: 760px) {
+
+  /* -------------------------------------------------------- quick bar */
+
+  .quickbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .quickbar button {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 42px;
+    padding: 0 13px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background: var(--s2);
+    color: var(--dim);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .quickbar button:active { background: var(--s3); }
+
+  /*
+   * Position is the shortest label and the most used control, so it gets
+   * the accent and sits first. Two or three characters is enough to say
+   * what is being ranked.
+   */
+  .qb-pos { flex: none; }
+  .qb-pos b {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+
+  /* the league name takes what room is left and truncates rather than wraps */
+  .qb-league { flex: 1; min-width: 0; }
+  .qb-league-t {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+  }
+  .qb-globe { flex: none; color: var(--faint); font-size: 12px; }
+
+  .qb-more { flex: none; }
+  .qb-sliders {
+    flex: none;
+    color: var(--faint);
+    font-size: 11px;
+    letter-spacing: -1px;
+  }
+  .qb-count {
+    display: grid;
+    place-items: center;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+  }
+  .qb-chev { flex: none; font-size: 8px; color: var(--faint); }
+
+  /* the wide-screen handle steps aside for it */
+  .bar-toggle { display: none; }
+
+  /* the bar loses its panel chrome — the three buttons are the bar */
+  .bar {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    margin-bottom: 12px;
+  }
+  .bar .posrow { display: none; }
+  .bar:not(.open) .posrow { display: none; }
+
+  /*
+   * The full filter set, when the third button opens it. It keeps the
+   * panel look the bar gave up, so an open drawer reads as a surface
+   * rather than as loose controls on the page.
+   */
+  .bar.open .bar-row {
+    display: grid;
+    margin-top: 12px;
+    padding: 14px;
+    background: var(--s1);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+  }
+
+  /* ------------------------------------------------------------ cards */
+
+  .cardlist { display: block; }
+  .scrollx { display: none; }
+
+  .pcard {
+    position: relative;
+    display: block;
+    background: var(--s1);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 13px 13px 0;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .pcard:active { background: var(--s2); }
+  .pcard.sel { border-color: var(--accent); background: var(--accent-soft); }
+
+  /*
+   * The rank is a watermark rather than a column. It answers "how far down
+   * am I" while scrolling and is worth almost nothing otherwise, so it
+   * sits behind everything at a weight that does not compete.
+   */
+  .pc-rank {
+    position: absolute;
+    right: 13px;
+    bottom: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--faint);
+    opacity: 0.5;
+  }
+
+  /* ------------------------------------------------------------- head */
+
+  .pc-top {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: start;
+    gap: 12px;
+  }
+
+  .pc-face { position: relative; flex: none; }
+  .pc-face img,
+  .pc-face .avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: 12px;
+  }
+
+  /*
+   * The flag overlaps the corner of the photograph rather than sitting
+   * beside the name. It is a fact about the player rather than about this
+   * ranking, and the corner is where a passport-sized detail belongs.
+   */
+  .pc-flag {
+    position: absolute;
+    left: -4px;
+    bottom: -4px;
+    width: 22px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    object-fit: cover;
+  }
+
+  .pc-id { min-width: 0; }
+
+  .pc-name {
+    font-family: var(--display);
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin: 0 0 3px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pc-club {
+    font-size: 12.5px;
+    color: var(--faint);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pc-meta {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 5px;
+    font-size: 11.5px;
+    color: var(--faint);
+    min-width: 0;
+  }
+  .pc-pos {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /*
+   * One style, and only where the model committed to one. A player who
+   * fits three roles equally gets nothing here, which is the honest
+   * answer — naming whichever won by a point would read as a finding.
+   */
+  .pc-style {
+    display: inline-block;
+    margin-top: 7px;
+    padding: 4px 9px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 11px;
+    color: var(--dim);
+    background: var(--s2);
+  }
+
+  /* ------------------------------------------------------------ score */
+
+  .pc-score {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1;
+    padding-top: 2px;
+  }
+  .pc-num {
+    font-family: var(--mono);
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .pc-num.elite { color: var(--accent); }
+  .pc-band {
+    margin-top: 5px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .pc-add {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--s2);
+    color: var(--faint);
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .pc-add.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .pc-add:active { transform: scale(0.94); }
+
+  /* -------------------------------------------------------- abilities */
+
+  /*
+   * Three, side by side, with the bar under the figure rather than beside
+   * it. Stacked they would take three rows; in a column each the bar is
+   * short enough that the eye reads proportion rather than length, which
+   * is the whole point of drawing it.
+   */
+  .pc-abilities {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 13px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .pc-ab { min-width: 0; }
+  .pc-ab-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 5px;
+  }
+  .pc-ab-name {
+    font-size: 11px;
+    color: var(--faint);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pc-ab-v {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .pc-ab-v.elite { color: var(--accent); }
+
+  .pc-ab-bar {
+    display: block;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--s3);
+    overflow: hidden;
+  }
+  .pc-ab-bar i { display: block; height: 100%; border-radius: 2px; }
+
+  /* ------------------------------------------------------------ facts */
+
+  .pc-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin-top: 12px;
+    padding: 10px 0 11px;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .pc-fact {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .pc-fact b {
+    font-family: var(--sans);
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--faint);
+  }
+
+  .pc-fact.adj em {
+    font-style: normal;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /*
+   * Confidence is a traffic light, and a word. The dot is read first and
+   * the word settles what it meant — colour alone would fail anyone who
+   * cannot tell green from amber.
+   */
+  .pc-fact.conf { text-transform: capitalize; }
+  .pc-fact.conf i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--faint);
+  }
+  .pc-fact.conf.high i { background: var(--accent); }
+  .pc-fact.conf.medium i { background: var(--gold); }
+  .pc-fact.conf.low i { background: var(--warn); }
+
+  /* the pagination sits under the cards rather than inside a table box */
+  .tablebox { border: 0; background: transparent; }
+  .tablebox > .table-key { border-radius: var(--r); }
 }

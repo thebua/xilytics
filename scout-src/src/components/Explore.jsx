@@ -48,22 +48,54 @@ export default function Explore({
    */
   const [sortOpen, setSortOpen] = useState(false);
 
+  /* the position sheet, opened from the quick bar on a phone */
+  const [posOpen, setPosOpen] = useState(false);
+
+  /*
+   * Which layout to build, decided in script rather than in CSS.
+   *
+   * The card the phone shows is not the table rearranged — the photograph
+   * carries a flag, the score sits beside the name with its band beneath,
+   * three abilities share a row of bars, and a strip of figures closes it.
+   * None of that can be reached by restyling table cells, and pretending
+   * otherwise produces markup that fights its own stylesheet.
+   *
+   * So the two are built separately from the same rows. matchMedia rather
+   * than a resize listener: it fires when the answer changes rather than
+   * on every pixel of a drag.
+   */
+  const [narrow, setNarrow] = useState(
+    () => typeof window !== "undefined"
+      && window.matchMedia("(max-width: 760px)").matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 760px)");
+    const onChange = (e) => setNarrow(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
   /*
    * A sheet that covers the screen must stop the page behind it scrolling,
    * or a drag meant for the list of options takes the ranking with it and
    * the sheet slides out from under the finger.
    */
   useEffect(() => {
-    if (!sortOpen) return;
+    if (!sortOpen && !posOpen) return;
     const held = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const esc = (e) => e.key === "Escape" && setSortOpen(false);
+    const esc = (e) => {
+      if (e.key !== "Escape") return;
+      setSortOpen(false);
+      setPosOpen(false);
+    };
     document.addEventListener("keydown", esc);
     return () => {
       document.body.style.overflow = held;
       document.removeEventListener("keydown", esc);
     };
-  }, [sortOpen]);
+  }, [sortOpen, posOpen]);
 
   const seasonNames = useMemo(() => {
     const ids = filters.league === ALL
@@ -300,6 +332,22 @@ export default function Explore({
     return n;
   }, [filters]);
 
+  /*
+   * The league button's label, on its own.
+   *
+   * The wide summary line names everything that is set; this names only
+   * the leagues, because that is the one thing the button changes and a
+   * label that mentions age ranges would be lying about what it does.
+   */
+  const leagueSummary = useMemo(() => {
+    if (filters.league === ALL) return "All leagues";
+    if (filters.league === NONE) return "No leagues";
+    if (filters.league.length === 1) {
+      return meta.codes?.[filters.league[0]] ?? meta.leagues[filters.league[0]] ?? "1 league";
+    }
+    return `${filters.league.length} leagues`;
+  }, [filters.league, meta]);
+
   const summary = useMemo(() => {
     const bits = [];
     bits.push(
@@ -381,11 +429,41 @@ export default function Explore({
         </div>
 
         {/*
-          The handle, and only on a phone — CSS hides it wherever there is
-          room for the controls themselves. It carries the current settings
-          so the closed state is still informative, and a count of how many
-          differ from their defaults.
+          The phone's filter row: three controls where the wide screen has
+          nine.
+
+          Position and league are here because they are the two people
+          change constantly — a scout looks at strikers in Spain, then
+          strikers in Italy, then midfielders in Spain. Everything else is
+          set once and left, so it folds behind the third button with a
+          count of what is currently on.
+
+          Position opens the same sheet the sort control uses; league opens
+          the picker it already had. CSS hides the whole row wherever the
+          real controls are visible.
         */}
+        <div className="quickbar">
+          <button className="qb-pos" onClick={() => setPosOpen(true)}
+            aria-expanded={posOpen}>
+            <b>{filters.position}</b>
+            <span className="qb-chev" aria-hidden="true">▾</span>
+          </button>
+
+          <button className="qb-league" onClick={() => setFiltersOpen(true)}>
+            <span className="qb-globe" aria-hidden="true">◍</span>
+            <span className="qb-league-t">{leagueSummary}</span>
+            <span className="qb-chev" aria-hidden="true">▾</span>
+          </button>
+
+          <button className="qb-more" onClick={() => setFiltersOpen(true)}
+            aria-expanded={filtersOpen}>
+            <span className="qb-sliders" aria-hidden="true">⚌</span>
+            Filters
+            {activeCount > 0 && <span className="qb-count">{activeCount}</span>}
+          </button>
+        </div>
+
+        {/* the wide-screen handle, kept for the tablet range between the two */}
         <button className="bar-toggle" aria-expanded={filtersOpen}
           onClick={() => setFiltersOpen((v) => !v)}>
           <span className="bt-icon" aria-hidden="true">⚙</span>
@@ -498,6 +576,34 @@ export default function Explore({
         </button>
       </div>
 
+      {posOpen && (
+        <>
+          <div className="sheet-veil" onClick={() => setPosOpen(false)} />
+          <div className="sortsheet" role="dialog" aria-label="Position">
+            <div className="ss-head">
+              <b>Position</b>
+              <button className="ss-done" onClick={() => setPosOpen(false)}>Done</button>
+            </div>
+            <div className="ss-list">
+              {meta.order.map((p) => (
+                <button key={p} className={"ss-row" + (filters.position === p ? " on" : "")}
+                  onClick={() => {
+                    setFilters((f) => ({ ...f, position: p, role: null }));
+                    setPage(1);
+                    setPosOpen(false);
+                  }}>
+                  <span className="ss-tick" aria-hidden="true">
+                    {filters.position === p ? "✓" : ""}
+                  </span>
+                  <span className="ss-name">{meta.positions[p]}</span>
+                  <span className="ss-kind">{p}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
       {sortOpen && (
         <>
           <div className="sheet-veil" onClick={() => setSortOpen(false)} />
@@ -572,6 +678,27 @@ export default function Explore({
                   the thresholds above rule them all out. Lower one and they
                   come back.</>
               : <>Try widening the minutes or age range.</>}
+          </div>
+        ) : narrow ? (
+          /*
+           * The phone gets cards built from the same rows, in the same
+           * order, under the same filters. Only the arrangement differs.
+           */
+          <div className="cardlist">
+            {slice.map((r, i) => (
+              <PlayerCard
+                key={keyOf(r)}
+                row={r}
+                rank={from + i + 1}
+                meta={meta}
+                axes={axes}
+                spread={spread}
+                showAdj={showAdj}
+                marked={marked.some((m) => keyOf(m) === keyOf(r))}
+                onToggle={toggleMark}
+                onOpen={onOpen}
+              />
+            ))}
           </div>
         ) : (
           <div className="scrollx">
@@ -907,5 +1034,137 @@ function Field({ label, children, wide }) {
       <span className="fld-label">{label}</span>
       {children}
     </div>
+  );
+}
+
+/* =====================================================================
+ *  The card a phone shows instead of a table row
+ * =====================================================================
+ *  A table needs a header to be read, and a header needs width. Below
+ *  760px there is neither, so the same facts are arranged as a card: the
+ *  player and their score at the top where the eye lands, the abilities
+ *  that decide the ranking in the middle, and the supporting figures in a
+ *  strip along the bottom.
+ *
+ *  Three abilities rather than all six or seven. The rest are a tap away
+ *  in the profile, and a card that lists everything is a card nobody
+ *  scrolls past — twenty-five of them at full height is eight thousand
+ *  pixels of ranking.
+ * ===================================================================== */
+
+function PlayerCard({ row, rank, meta, axes, marked, onToggle, onOpen, spread, showAdj }) {
+  const cf = confidenceOf(row);
+
+  /*
+   * Which three abilities to show.
+   *
+   * The columns for this position, in the order the model considers them
+   * — which puts the ones that carry the most weight first. Metrics are
+   * skipped: a raw figure without its unit means little at this size, and
+   * the abilities are what the score is built from.
+   */
+  const shown = axes
+    .filter((ax) => ax.k === "t" && row.th?.[ax.i] != null)
+    .slice(0, 3);
+
+  /*
+   * The style label, where the model was confident enough to give one.
+   * A player who fits three roles equally gets none, and that silence is
+   * information — better than naming whichever won by a point.
+   */
+  const style = row.rl || null;
+
+  return (
+    <article className={"pcard" + (marked ? " sel" : "")}
+      onClick={() => onOpen(row)}
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === "Enter") onOpen(row); }}>
+
+      <div className="pc-top">
+        <div className="pc-face">
+          <Avatar row={row} base={meta.imgbase} size={68} />
+          {row.flag && (
+            <img className="pc-flag" src={row.flag} alt={row.nat || ""} loading="lazy" />
+          )}
+        </div>
+
+        <div className="pc-id">
+          <h3 className="pc-name">{row.n}</h3>
+          <div className="pc-club">{row.t}</div>
+          <div className="pc-meta">
+            {spread.any && <LeagueTag row={row} meta={meta} withSeason={spread.season} />}
+            <span className="pc-pos">{row.dp || meta.positions[row.pos]}</span>
+          </div>
+          {style && <div className="pc-style">{style}</div>}
+        </div>
+
+        <div className="pc-score">
+          <span className={"pc-num" + (row.sc >= 88 ? " elite" : "")}>
+            {row.sc == null ? "—" : Math.round(row.sc)}
+          </span>
+          <span className="pc-band">{band(row.sc)}</span>
+        </div>
+
+        {/*
+          Add to comparison. Stops the click reaching the card, which would
+          open the profile — the two actions sit within a thumb's width of
+          each other and must not be confusable.
+        */}
+        <button className={"pc-add" + (marked ? " on" : "")}
+          aria-pressed={marked}
+          aria-label={marked
+            ? `Remove ${row.n} from comparison`
+            : `Add ${row.n} to comparison`}
+          onClick={(e) => { e.stopPropagation(); onToggle(row); }}>
+          {marked ? "✓" : "＋"}
+        </button>
+      </div>
+
+      {shown.length > 0 && (
+        <div className="pc-abilities">
+          {shown.map((ax) => {
+            const v = row.th[ax.i];
+            return (
+              <div className="pc-ab" key={ax.i}>
+                <div className="pc-ab-head">
+                  <span className="pc-ab-name">{ax.short || ax.name}</span>
+                  <span className={"pc-ab-v" + (v >= 88 ? " elite" : "")}>{Math.round(v)}</span>
+                </div>
+                <span className="pc-ab-bar">
+                  <i style={{ width: `${Math.max(v, 2)}%`, background: ramp(v) }} />
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="pc-facts">
+        <span className="pc-fact">
+          <b>Age</b>{row.age ?? "—"}
+        </span>
+        <span className="pc-fact">
+          <b>Min</b>{row.m?.toLocaleString() ?? "—"}
+        </span>
+        <span className="pc-fact">
+          <b>Rating</b>{row.rt ? row.rt.toFixed(2) : "—"}
+        </span>
+        {showAdj && (
+          <span className="pc-fact adj">
+            <b>Adjusted</b>
+            <em>{row.sc2 == null ? "—" : Math.round(row.sc2)}</em>
+          </span>
+        )}
+        {cf && (
+          <span className={"pc-fact conf " + cf.level}>
+            <b>Confidence</b>
+            <i aria-hidden="true" />
+            {cf.level}
+          </span>
+        )}
+      </div>
+
+      <span className="pc-rank" aria-hidden="true">{rank}</span>
+    </article>
   );
 }

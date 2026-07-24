@@ -393,10 +393,28 @@ export default function App() {
               Every player judged on what their own position is for, then
               ranked against the others doing the same job in the same league.
             </p>
+            {/*
+              Three figures, each with a mark of its own.
+
+              They used to run together in one sentence separated by
+              middots, which on a phone wrapped into two lines and read as
+              a single long number. Given a glyph apiece they separate at a
+              glance, and the count leads because that is the one people
+              are checking.
+            */}
             <div className="stat-line">
-              <b>{data.rows.length.toLocaleString()}</b> player-seasons ·{" "}
-              <b>{Object.keys(meta.leagues).length}</b> leagues ·{" "}
-              minimum <b>{meta.minMinutes}</b> minutes
+              <span className="stat">
+                <i className="stat-i" aria-hidden="true">◉</i>
+                <b>{data.rows.length.toLocaleString()}</b> players
+              </span>
+              <span className="stat">
+                <i className="stat-i" aria-hidden="true">◍</i>
+                <b>{Object.keys(meta.leagues).length}</b> leagues
+              </span>
+              <span className="stat">
+                <i className="stat-i" aria-hidden="true">▮</i>
+                <b>{meta.labels.length}</b> metrics
+              </span>
             </div>
 
             {/*

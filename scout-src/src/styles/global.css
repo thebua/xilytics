@@ -205,13 +205,38 @@ a { color: inherit; }
   max-width: 62ch;
 }
 .page-head .stat-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
   margin-top: 14px;
   font-family: var(--mono);
   font-size: 11.5px;
   color: var(--faint);
   letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
 }
 .page-head .stat-line b { color: var(--text); font-weight: 500; }
+
+/*
+ * The three figures, each on its own.
+ *
+ * They ran together in one sentence separated by middots, which on a
+ * phone wrapped mid-clause and read as a single long number. Given a
+ * glyph apiece and their own gap they separate at a glance, and wrap
+ * cleanly when there is no room for three across.
+ */
+.page-head .stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+.page-head .stat-i {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--accent);
+  transform: translateY(-1px);
+}
 
 /* ---- panels: surface and shadow instead of a border on everything -- */
 .card {
