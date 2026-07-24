@@ -197,6 +197,27 @@ footer{border-top:1px solid var(--border);padding:40px 0;margin-top:20px}
   .side{grid-template-columns:1fr;padding:32px 24px}
   .hero{padding:64px 0 52px}
   .stats{gap:28px}
+  section{padding:60px 0}
+  .cta-strip{padding:44px 24px;border-radius:18px}
+}
+@media(max-width:480px){
+  .wrap{padding:0 16px}
+  .nav{height:58px;gap:12px}
+  .logo{font-size:1.1rem}
+  .logo .mark{width:30px;height:30px;font-size:.76rem}
+  .navcta{padding:8px 14px;font-size:.84rem}
+  .hero{padding:48px 0 40px}
+  h1{letter-spacing:-1px}
+  .hero-cta{flex-direction:column}
+  .hero-cta .btn{width:100%;justify-content:center}
+  /* four stats in a row is unreadable this narrow; two by two reads */
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:22px;text-align:center}
+  .stat b{font-size:1.6rem}
+  .card{padding:24px 20px}
+  .tier{padding:26px 22px}
+  .cta-strip{padding:36px 20px}
+  .foot{flex-direction:column;align-items:flex-start;gap:14px}
+  .foot nav{margin-left:0;flex-wrap:wrap}
 }
 </style>
 </head>
