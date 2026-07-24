@@ -19,6 +19,21 @@ export default function Explore({
   const [mode, setMode] = useState("rank");   // "rank" or "figure"
   const [openCell, setOpenCell] = useState(null);  // `${rowKey}:${colIdx}` of an open theme strip
 
+  /*
+   * On a phone the filters open closed.
+   *
+   * Everything below the position row — league, season, minutes, age, club,
+   * nationality, search — stacks to most of a screen, and a visitor arriving
+   * for the first time met a form rather than a table. They had to scroll
+   * past nine controls to reach the thing the page is for.
+   *
+   * So on a narrow screen the controls sit behind a summary line that says
+   * what they are currently set to, and the table starts where the position
+   * buttons end. Nothing changes on a wide screen, where there was room for
+   * both all along.
+   */
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
   const seasonNames = useMemo(() => {
     const ids = filters.league === ALL
       ? meta.pairs.map((p) => p[1])
@@ -196,9 +211,53 @@ export default function Explore({
   const arrow = (col) => sort.col === col
     ? <span className="arrow">{sort.dir < 0 ? "▼" : "▲"}</span> : null;
 
+  /*
+   * What the closed drawer says.
+   *
+   * A collapsed control that reads only "Filters" makes people open it to
+   * find out whether anything is set. Naming the current state answers that
+   * without a tap, and the count beside it marks how far the list has been
+   * narrowed from its defaults.
+   */
+  const activeCount = useMemo(() => {
+    let n = 0;
+    if (filters.league !== ALL) n++;
+    if (filters.season !== ALL) n++;
+    if (filters.minMinutes !== 900) n++;
+    if (filters.ageLo || filters.ageHi) n++;
+    if (filters.team) n++;
+    if (filters.nat) n++;
+    if (filters.query.trim()) n++;
+    if (filters.role != null) n++;
+    if (filters.roleMin) n++;
+    return n;
+  }, [filters]);
+
+  const summary = useMemo(() => {
+    const bits = [];
+    bits.push(
+      filters.league === ALL
+        ? "All leagues"
+        : filters.league === NONE
+          ? "No leagues"
+          : filters.league.length === 1
+            ? (meta.leagues[filters.league[0]] ?? "1 league")
+            : `${filters.league.length} leagues`
+    );
+    if (filters.season !== ALL) bits.push(filters.season);
+    if (filters.role != null) bits.push(meta.roles[filters.position][filters.role].name);
+    if (filters.team) bits.push(filters.team);
+    if (filters.nat) bits.push(filters.nat);
+    if (filters.ageLo || filters.ageHi) {
+      bits.push(`${filters.ageLo || 16}–${filters.ageHi || 42}`);
+    }
+    bits.push(`${filters.minMinutes}′+`);
+    return bits.join(" · ");
+  }, [filters, meta]);
+
   return (
     <>
-      <div className="bar">
+      <div className={"bar" + (filtersOpen ? " open" : "")}>
         <div className="posrow">
           <span className="posrow-label">Position</span>
           <div className="seg">
@@ -235,7 +294,7 @@ export default function Explore({
           </div>
 
           {(meta.roles[filters.position] || []).length > 0 && (
-            <>
+            <div className="stylegroup">
               <span className="posrow-label role-label">Style</span>
               <div className="seg roles-seg">
                 <button aria-pressed={filters.role == null}
@@ -250,9 +309,23 @@ export default function Explore({
                   </button>
                 ))}
               </div>
-            </>
+            </div>
           )}
         </div>
+
+        {/*
+          The handle, and only on a phone — CSS hides it wherever there is
+          room for the controls themselves. It carries the current settings
+          so the closed state is still informative, and a count of how many
+          differ from their defaults.
+        */}
+        <button className="bar-toggle" aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen((v) => !v)}>
+          <span className="bt-icon" aria-hidden="true">⚙</span>
+          <span className="bt-summary">{summary}</span>
+          {activeCount > 0 && <span className="bt-count">{activeCount}</span>}
+          <span className="bt-chev" aria-hidden="true">{filtersOpen ? "▲" : "▼"}</span>
+        </button>
 
         <div className="bar-row">
           <Field label="League">

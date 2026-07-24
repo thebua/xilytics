@@ -21,8 +21,26 @@
   font-weight: 500;
   color: var(--faint);
 }
+
+/*
+ * Style used to be two loose children of the position row. It is a div now
+ * so the phone layout can fold it away in one piece, and this keeps it
+ * sitting on the same line as before wherever there is room.
+ */
+.stylegroup {
+  display: contents;
+}
 .bar-row { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; }
 .bar-row .push { margin-left: auto; }
+
+/*
+ * The handle that opens the filters on a phone.
+ *
+ * Hidden here and shown only at the narrow breakpoint: on a wide screen the
+ * controls are already visible and a button to reveal them would be a step
+ * that leads nowhere.
+ */
+.bar-toggle { display: none; }
 
 .fld { display: flex; flex-direction: column; gap: 6px; }
 .fld.wide { min-width: 160px; }
@@ -659,6 +677,95 @@ thead th.metric.adj-h { padding-right: 18px; }
  * take two to a row, with the wide ones spanning both, and enough size
  * to be tapped rather than poked at.
  * ===================================================================== */
+/* =====================================================================
+ * Phones: the filters start closed
+ * =====================================================================
+ * Nine controls stack to most of a screen, and the first thing a visitor
+ * met was a form — they had to scroll past league, season, minutes, age,
+ * club, nationality and search before a single player appeared. The page
+ * is a ranking; it should open on the ranking.
+ *
+ * So everything except the position row folds behind a handle that names
+ * what it is currently set to. Position stays out because it is the one
+ * control people change constantly, and because the ten buttons double as
+ * a legend for what the table is showing.
+ * ===================================================================== */
+@media (max-width: 700px) {
+  .bar-toggle {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    margin-top: 13px;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background: var(--s2);
+    color: var(--dim);
+    font: inherit;
+    font-size: 12.5px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .bar-toggle:active { background: var(--s3); }
+
+  .bt-icon { flex: none; font-size: 13px; color: var(--faint); }
+
+  /*
+   * The summary is one line whatever it says. Two leagues and a club and an
+   * age range would otherwise wrap the handle to three rows, which is the
+   * height the drawer was meant to save.
+   */
+  .bt-summary {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .bt-count {
+    flex: none;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+  }
+
+  .bt-chev { flex: none; font-size: 9px; color: var(--faint); }
+
+  /*
+   * Closed by default. `display: none` rather than a height animation:
+   * the row is a grid whose height depends on what is in it, and animating
+   * to an unknown height either jumps at the end or needs the height
+   * measured in script for a transition nobody asked for.
+   */
+  .bar .stylegroup,
+  .bar .bar-row { display: none; }
+
+  /*
+   * display:contents lets it sit inline on a wide screen; here it becomes a
+   * block again so the label and buttons stack rather than joining the
+   * position grid.
+   */
+  .bar.open .stylegroup { display: block; margin-top: 13px; }
+  .bar.open .bar-row { display: grid; margin-top: 14px; }
+
+  /* the position row loses its divider when nothing follows it */
+  .bar:not(.open) .posrow {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-bottom: 0;
+  }
+}
+
 @media (max-width: 560px) {
   .bar { padding: 14px; border-radius: var(--r); }
 
