@@ -5,6 +5,28 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Xilytics Scout</title>
   <meta name="description" content="Rank, compare and profile footballers with position-adjusted percentile metrics.">
+
+  <!--
+    The browser's own chrome, in the site's colour.
+
+    On a phone the address bar and the status area above it are painted by
+    the browser, not the page, and they default to something pale. A dark
+    page under a light bar reads as a page that has not finished loading.
+  -->
+  <meta name="theme-color" content="#070b0a">
+
+  <!--
+    The background, before anything else.
+
+    A stylesheet arrives late — this one is inside a module that has to be
+    fetched and parsed first — and until it does the browser paints white.
+    On a dark site that is a flash on every navigation: black, white, black.
+    Twelve inline bytes remove it, and the value is repeated in global.css
+    for everything that follows.
+  -->
+  <style>html{background:#070b0a}</style>
+
+  <link rel="icon" href="/xilytics-favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">

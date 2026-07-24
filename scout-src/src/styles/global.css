@@ -55,7 +55,24 @@
 
 * { box-sizing: border-box; }
 html, body, #root { margin: 0; padding: 0; min-height: 100%; }
-html { scroll-behavior: smooth; }
+
+/*
+ * The background belongs on html, not only on body.
+ *
+ * A browser paints its own white while it waits for the first stylesheet,
+ * and on a dark site that shows as a flash on every navigation — leaving
+ * the scout for the lineup builder went black, white, black in the space
+ * of a blink. Painting html means the page is already the right colour
+ * before anything else has arrived, and body inherits the same value a
+ * moment later without a second repaint.
+ *
+ * It also covers the area past the end of a short page, where body stops
+ * and html carries on.
+ */
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
 
 body {
   background: var(--bg);
