@@ -280,8 +280,28 @@
 
 @media (max-width: 640px) {
   .acct-name { display: none; }      /* the avatar is enough */
-  .acct-me { padding: 4px; }
-  .acct-in { font-size: 12px; padding: 6px 11px; }
+
+  /*
+   * Both controls sit on the same line as the search field, and the three
+   * of them should read as one row rather than three heights. 34px is what
+   * the field settles at, so the button and the avatar chip take it too —
+   * the mismatch was small enough to go unnamed and large enough to look
+   * careless.
+   */
+  .acct-in {
+    height: 34px;
+    padding: 0 14px;
+    font-size: 12.5px;
+  }
+  .acct-me {
+    height: 34px;
+    padding: 0 8px 0 4px;
+  }
+
   .acct-menu { right: -6px; min-width: 196px; }
   .acct-dialog { padding: 26px 20px 20px; }
+}
+
+@media (max-width: 380px) {
+  .acct-in { padding: 0 11px; font-size: 12px; }
 }

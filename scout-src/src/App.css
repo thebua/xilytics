@@ -137,7 +137,13 @@
   left: 10px; top: 50%;
   transform: translateY(-50%);
   color: var(--faint);
-  font-size: 13px;
+  /*
+   * The glyph is a character rather than an icon, and at the field's own
+   * size it reads as a speck. Set a little above the text it sits beside,
+   * which is how a magnifier looks on every other search field.
+   */
+  font-size: 15px;
+  line-height: 1;
   pointer-events: none;
 }
 
@@ -301,7 +307,12 @@ main.wrap { padding-top: 0; }
   .logo-sub { display: none; }
   .mark { width: 28px; height: 28px; font-size: 12px; }
 
-  /* search shares the top row with the logo */
+  /*
+   * Search and the account control share the top row with the logo, and
+   * they should look like a pair. The field used to sit a couple of pixels
+   * taller than the Sign in button beside it, which is the sort of
+   * mismatch nobody names but everybody sees. Both are now 34px.
+   */
   .gsearch {
     order: 2;
     margin-left: auto;
@@ -310,10 +321,15 @@ main.wrap { padding-top: 0; }
     max-width: 175px;
   }
   .gsearch input {
+    height: 34px;
     font-size: 13px;
-    padding: 9px 10px 9px 30px;
+    padding: 0 10px 0 32px;
     border-radius: var(--r-sm);
   }
+  .gicon { font-size: 16px; left: 11px; }
+
+  /* the account control keeps its own sizing in account.css */
+  .acct { order: 2; }
 
   /*
    * Views take a row of their own, divided evenly. No negative margins:
@@ -344,8 +360,9 @@ main.wrap { padding-top: 0; }
 
 @media (max-width: 380px) {
   .logo { font-size: 15.5px; }
-  .gsearch { max-width: 138px; }
+  .gsearch { max-width: 118px; }
   .masthead nav button { font-size: 10.5px; padding: 8px 1px; }
+  .acct-in { padding: 0 11px; font-size: 12px; }
   .wrap { padding-left: 12px; padding-right: 12px; }
 }
 
