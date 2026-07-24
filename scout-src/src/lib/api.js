@@ -13,11 +13,11 @@
  *
  * How much it asks for depends on who is asking:
  *
- *   open visitor   three leagues, about 1,900 rows — small enough to send
- *                  in one go, and then the whole interface is instant
- *   member         one position at a time, about 3,000 rows, because all
- *                  fifty-eight leagues at once is several megabytes and
- *                  nobody needs goalkeepers while reading about strikers
+ *   open visitor   the open leagues, small enough to send in one go, and
+ *                  then the whole interface is instant
+ *   member         one position at a time, because every league at once is
+ *                  several megabytes and nobody needs goalkeepers while
+ *                  reading about strikers
  */
 
 const API = "/api";
@@ -200,17 +200,25 @@ export async function loadMeta({ token, signal } = {}) {
 }
 
 /*
- * Everything the caller is entitled to see, for one position. Members get
- * a position at a time; an open visitor's three leagues are small enough
- * that the position filter barely matters, but it keeps the two paths the
- * same and the first paint quicker.
+ * Everything the caller is entitled to see, for one position.
  *
  * Answers are kept for the session. Flicking between CM and DM and back is
  * a common way to read this data, and the second visit should not cost
  * another wait — the dataset only changes when a harvest is loaded, so
  * nothing here goes stale while the tab is open.
+ *
+ * The key carries whether a token was present, because a member sees more
+ * than a visitor and the two answers must not be confused for each other.
+ * That alone is not enough, though: signing out leaves the member's rows
+ * sitting under the member key, and signing back in would hand them
+ * straight back without asking. clearPositionCache is called on both
+ * events for that reason.
  */
 const positionCache = new Map();
+
+export function clearPositionCache() {
+  positionCache.clear();
+}
 
 export async function loadPosition(pos, { token, signal, onProgress } = {}) {
   const key = `${pos}|${token ? "member" : "open"}`;

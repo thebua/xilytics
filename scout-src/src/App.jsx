@@ -8,8 +8,10 @@ import Strength from "./components/Strength";
 import Avatar from "./components/Avatar";
 import LeagueTag from "./components/LeagueTag";
 import { MAX_PICK, hydrate, keyOf } from "./lib/util";
-import { loadMeta, loadPosition, derivePairs } from "./lib/api";
+import { loadMeta, loadPosition, derivePairs, clearPositionCache } from "./lib/api";
 import { toHash, fromHash, DEFAULTS } from "./lib/urlState";
+import { supabase } from "./lib/supabase";
+import { readShelf, writeShelf, EMPTY_SHELF, slim } from "./lib/shelf";
 import "./styles/global.css";
 import "./App.css";
 
@@ -24,15 +26,66 @@ export default function App() {
   const [error, setError] = useState(null);
 
   /*
-   * Account state. Nothing is persisted yet — signing in puts a made-up
-   * user here so the two states of the interface can be seen and judged.
-   * The real thing replaces onSignIn and the shelf below it.
+   * Who is signed in, and the token that proves it.
+   *
+   * The session is Supabase's; the token inside it is what the API reads to
+   * decide which leagues this caller may see. Both are held here rather than
+   * fetched where they are needed, so there is one answer to "is anyone
+   * signed in" and every part of the app agrees with it.
    */
-  const [user, setUser] = useState(null);
-  const [shelf, setShelf] = useState({
-    favourites: [], squad: [], history: [], searches: [],
-  });
+  const [session, setSession] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const user = session?.user ?? null;
+  const token = session?.access_token ?? null;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    /*
+     * getSession reads what is already stored — a reload should not send
+     * anyone back to the sign-in dialog. authReady guards the first data
+     * load: firing it before the stored session is read would fetch the
+     * open set and then immediately fetch it again with a token.
+     */
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return;
+      setSession(data.session ?? null);
+      setAuthReady(true);
+    });
+
+    /*
+     * Fires on sign-in, sign-out, and every silent token refresh. The
+     * cached rows are keyed by whether a token was present, so they are
+     * dropped whenever that changes — otherwise signing in would leave a
+     * member looking at the anonymous slice of the data.
+     */
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
+      if (cancelled) return;
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") clearPositionCache();
+      setSession(next ?? null);
+      setAuthReady(true);
+    });
+
+    return () => { cancelled = true; sub.subscription.unsubscribe(); };
+  }, []);
+
+  /*
+   * The shelf.
+   *
+   * Kept in the browser rather than on the server for now, which means it
+   * belongs to this device rather than to the account. That is a smaller
+   * promise than the sign-in dialog makes, and the next step is to move it
+   * behind the account — but a shelf that survives a reload is already the
+   * difference between a feature and a demonstration.
+   *
+   * Only an identifying sketch of each row is stored. Keeping whole rows
+   * meant every percentile and metric array went to disk, which is a few
+   * hundred kilobytes for forty players and more than the quota enjoys.
+   */
+  const [shelf, setShelf] = useState(() => readShelf());
   const [savedTab, setSavedTab] = useState("favourites");
+
+  useEffect(() => { writeShelf(shelf); }, [shelf]);
 
   const inShelf = (list, row) =>
     !!row && (shelf[list] || []).some((x) => keyOf(x) === keyOf(row));
@@ -47,9 +100,10 @@ export default function App() {
       ...s,
       [list]: held
         ? s[list].filter((x) => keyOf(x) !== keyOf(row))
-        : [row, ...(s[list] || [])],
+        : [slim(row), ...(s[list] || [])],
     };
   });
+
   /* the address bar is the source of truth on first paint */
   const boot = fromHash(window.location.hash);
 
@@ -70,30 +124,35 @@ export default function App() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
+    if (!authReady) return;
     let cancelled = false;
     const ac = new AbortController();
 
     (async () => {
       try {
-        const m = await loadMeta({ signal: ac.signal });
+        const m = await loadMeta({ token, signal: ac.signal });
         if (cancelled) return;
         setBaseMeta(m);
+        setError(null);
       } catch (e) {
-        if (!cancelled) setError(e.message);
+        if (!cancelled && e.name !== "AbortError") setError(e.message);
       }
     })();
 
     return () => { cancelled = true; ac.abort(); };
-  }, []);
+  }, [authReady, token]);
 
   /*
    * Rows arrive a position at a time. The whole dataset is several
    * megabytes and nobody reads two positions at once, so the request
    * follows the position the visitor is looking at — and is thrown away
    * if they move on before it lands.
+   *
+   * The token is a dependency: a member sees more than a visitor, so
+   * signing in has to ask again rather than keep what it already had.
    */
   useEffect(() => {
-    if (!baseMeta) return;
+    if (!baseMeta || !authReady) return;
     let cancelled = false;
     const ac = new AbortController();
 
@@ -101,6 +160,7 @@ export default function App() {
     (async () => {
       try {
         const { rows, locked } = await loadPosition(filters.position, {
+          token,
           signal: ac.signal,
           onProgress: (got, total) => {
             if (!cancelled) setProgress({ got, total });
@@ -110,6 +170,7 @@ export default function App() {
         const withPools = derivePairs({ ...baseMeta }, rows);
         setData(hydrate({ meta: withPools, rows }));
         setLocked(locked);
+        setError(null);
       } catch (e) {
         if (!cancelled && e.name !== "AbortError") setError(e.message);
       } finally {
@@ -118,7 +179,7 @@ export default function App() {
     })();
 
     return () => { cancelled = true; ac.abort(); };
-  }, [baseMeta, filters.position]);
+  }, [baseMeta, filters.position, token, authReady]);
 
   /*
    * Mirror the state into the URL so a view can be shared or reloaded.
@@ -172,7 +233,7 @@ export default function App() {
     if (user && row) {
       setShelf((s) => ({
         ...s,
-        history: [row, ...(s.history || []).filter((x) => keyOf(x) !== keyOf(row))].slice(0, 40),
+        history: [slim(row), ...(s.history || []).filter((x) => keyOf(x) !== keyOf(row))].slice(0, 40),
       }));
     }
   };
@@ -189,6 +250,42 @@ export default function App() {
     if (!marked.length) return;
     setPicked(marked.slice(0, MAX_PICK));
     goTo("compare", { top: true });
+  };
+
+  /* ------------------------------------------------------------- account */
+
+  /*
+   * Sign-in is a redirect: the browser leaves for Google or for a mailbox
+   * and comes back to this page with a token in the fragment. Nothing to
+   * do on this side but ask — onAuthStateChange picks it up on return.
+   */
+  const signIn = async (how, email) => {
+    const redirectTo = `${window.location.origin}${window.location.pathname}`;
+
+    if (how === "google") {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo },
+      });
+      if (error) throw error;
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: redirectTo },
+    });
+    if (error) throw error;
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    /*
+     * The shelf stays. It belongs to the browser rather than the account
+     * at present, and clearing it on sign-out would throw away work the
+     * person never asked to lose.
+     */
+    if (view === "saved") goTo("explore");
   };
 
   if (error) {
@@ -276,21 +373,10 @@ export default function App() {
             )}
           </div>
 
-          {/*
-            TODO: onSignIn and onSignOut are stubs. Signing in fabricates a
-            user so both states of the interface can be seen; the real
-            calls go to Supabase.
-          */}
           <Account
             user={user}
-            onSignIn={(how, email) => {
-              setUser({
-                name: email ? email.split("@")[0] : "Signed in",
-                email: email || "you@example.com",
-                how,
-              });
-            }}
-            onSignOut={() => setUser(null)}
+            onSignIn={signIn}
+            onSignOut={signOut}
             onOpenSaved={(tab) => { setSavedTab(tab); goTo("saved"); }}
           />
         </div>

@@ -3,8 +3,12 @@
  * =====================================================================
  *  A visitor and a member should not look alike. The invitation is an
  *  outlined button that asks for something; a member gets their own
- *  initial in the accent colour, which reads as "this is you" without
- *  needing a word.
+ *  photograph, or their initial in the accent colour, which reads as
+ *  "this is you" without needing a word.
+ *
+ *  Google is the only way in, so the rules that dressed an email field,
+ *  a divider and a "check your inbox" panel have gone with it. They were
+ *  styling markup that no longer exists.
  * ===================================================================== */
 
 .acct { position: relative; flex: none; }
@@ -59,6 +63,20 @@
   font-size: 12px;
   flex: none;
 }
+
+/*
+ * Google sends a photograph with the account. It takes the same circle the
+ * initial had, so the masthead does not shift when one gives way to the
+ * other, and it is cropped rather than squashed — a portrait squeezed into
+ * a square reads as a mistake even when nobody can say why.
+ */
+.acct-photo {
+  object-fit: cover;
+  background: var(--s3);
+  padding: 0;
+  border: 0;
+}
+
 .acct-name {
   font-family: var(--sans);
   font-size: 12.5px;
@@ -212,75 +230,43 @@
 }
 .acct-google:hover { border-color: var(--faint); background: var(--s3); }
 
-.acct-or {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 16px 0;
-  color: var(--faint);
-  font-size: 11px;
-}
-.acct-or::before, .acct-or::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--line-soft);
+/*
+ * The Google mark carries width and height attributes, but a flex child
+ * ignores them and takes whatever the row will give — which, in a
+ * full-width button, is most of it. Fixing the box here keeps the logo the
+ * size of the words beside it.
+ */
+.acct-google svg {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
 }
 
-.acct-label {
-  display: block;
-  font-size: 11px;
-  color: var(--faint);
-  margin-bottom: 6px;
-}
-.acct-dialog input[type="email"] {
-  width: 100%;
-  padding: 11px 12px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--line);
-  background: var(--s2);
-  color: var(--text);
-  font: inherit;
-  font-size: 14px;
-}
-.acct-dialog input[type="email"]:focus {
-  outline: none;
-  border-color: var(--accent);
+/*
+ * A control waiting on the network should look like it is waiting, and
+ * should not take a second press while the first is still in flight.
+ */
+.acct-google:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 
-.acct-send {
-  width: 100%;
-  margin-top: 10px;
-  padding: 11px;
-  border: 0;
+/*
+ * Something went wrong signing in.
+ *
+ * Sits below the button rather than replacing it, so a second attempt costs
+ * one press. Warm rather than red-alert: a dismissed popup or a lapsed
+ * provider is a small setback, not a fault to be alarmed about.
+ */
+.acct-problem {
+  margin: 10px 0 0;
+  padding: 9px 11px;
   border-radius: var(--r-sm);
-  background: var(--accent);
-  color: var(--bg);
-  font: inherit;
-  font-size: 13.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.14s;
-}
-.acct-send:hover { background: var(--accent-deep); }
-
-.acct-sent {
-  padding: 16px;
-  border-radius: var(--r-sm);
-  background: var(--s2);
-  border: 1px solid var(--line);
-}
-.acct-sent b { display: block; font-size: 13.5px; margin-bottom: 6px; }
-.acct-sent p { font-size: 12.5px; line-height: 1.6; color: var(--faint); margin: 0 0 12px; }
-.acct-again {
-  border: 0;
-  background: none;
-  padding: 0;
-  color: var(--accent);
-  font: inherit;
+  background: rgba(255, 122, 82, 0.1);
+  border: 1px solid rgba(255, 122, 82, 0.28);
+  color: var(--warn);
   font-size: 12.5px;
-  cursor: pointer;
-  text-decoration: underline;
+  line-height: 1.5;
 }
 
 .acct-small {
@@ -293,7 +279,7 @@
 /* ---------------------------------------------------------------- phones */
 
 @media (max-width: 640px) {
-  .acct-name { display: none; }      /* the initial is enough */
+  .acct-name { display: none; }      /* the avatar is enough */
   .acct-me { padding: 4px; }
   .acct-in { font-size: 12px; padding: 6px 11px; }
   .acct-menu { right: -6px; min-width: 196px; }

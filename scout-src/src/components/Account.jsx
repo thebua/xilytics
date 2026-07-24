@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { supabaseReady } from "../lib/supabase";
 import "./account.css";
 
 /*
@@ -8,16 +9,23 @@ import "./account.css";
  * a member sees themselves. The difference is the point — someone who has
  * signed in should be able to tell at a glance, without opening anything.
  *
- * The sign-in calls are stubs for now, marked TODO. Everything else — the
- * dialog, the menu, the saved-work screens — is real, so the shape can be
- * judged before the plumbing goes in behind it.
+ * Google is the only way in. An emailed link sat beside it for a while and
+ * earned its removal: it costs a trip to a mailbox and back, nearly everyone
+ * arriving here already has a Google account live in the same browser, and
+ * the mail service it leaned on was rate-limited in a way that made every
+ * failure read as a mistyped address. One button that works beats two that
+ * dilute each other.
+ *
+ * Signing in leaves the page and returns with a token in the fragment, so
+ * nothing here waits for a user — the session arrives on its own and the
+ * component above picks it up.
  */
 
 export default function Account({ user, onSignIn, onSignOut, onOpenSaved }) {
   const [dialog, setDialog] = useState(false);
   const [menu, setMenu] = useState(false);
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState(null);
   const wrapRef = useRef(null);
 
   /* a menu that will not close is worse than no menu */
@@ -42,23 +50,42 @@ export default function Account({ user, onSignIn, onSignOut, onOpenSaved }) {
     return () => document.removeEventListener("keydown", esc);
   }, [dialog]);
 
+  /* a stale error under a fresh dialog reads as a new failure */
+  useEffect(() => {
+    if (!dialog) { setProblem(null); setBusy(false); }
+  }, [dialog]);
+
   /* ------------------------------------------------------------ signed in */
 
   if (user) {
-    const initial = (user.name || user.email || "?").trim()[0].toUpperCase();
+    /*
+     * Google carries a display name and usually a photograph. Where the name
+     * is missing the local part of the address is a better greeting than the
+     * whole of it, and an initial stands in for the picture.
+     */
+    const name =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email?.split("@")[0] ||
+      "Signed in";
+    const initial = name.trim()[0].toUpperCase();
+    const photo = user.user_metadata?.avatar_url || null;
+
     return (
       <div className="acct" ref={wrapRef}>
         <button className="acct-me" onClick={() => setMenu((v) => !v)}
           aria-expanded={menu} aria-haspopup="menu">
-          <span className="acct-avatar">{initial}</span>
-          <span className="acct-name">{user.name || user.email.split("@")[0]}</span>
+          {photo
+            ? <img className="acct-avatar acct-photo" src={photo} alt="" />
+            : <span className="acct-avatar">{initial}</span>}
+          <span className="acct-name">{name}</span>
           <span className="acct-chev" aria-hidden="true">▾</span>
         </button>
 
         {menu && (
           <div className="acct-menu" role="menu">
             <div className="acct-who">
-              <b>{user.name || "Signed in"}</b>
+              <b>{name}</b>
               <span>{user.email}</span>
             </div>
 
@@ -88,6 +115,19 @@ export default function Account({ user, onSignIn, onSignOut, onOpenSaved }) {
 
   /* ----------------------------------------------------------- signed out */
 
+  const withGoogle = async () => {
+    if (busy) return;
+    setProblem(null);
+    setBusy(true);
+    try {
+      await onSignIn?.("google");
+      /* the page is leaving; nothing after this runs */
+    } catch (e) {
+      setBusy(false);
+      setProblem(e?.message || "Google sign-in is unavailable just now.");
+    }
+  };
+
   return (
     <div className="acct" ref={wrapRef}>
       <button className="acct-in" onClick={() => setDialog(true)}>
@@ -110,43 +150,24 @@ export default function Account({ user, onSignIn, onSignOut, onOpenSaved }) {
               building, searches you would rather not set up twice.
             </p>
 
-            {/* TODO: wire to Supabase OAuth */}
-            <button className="acct-google" onClick={() => onSignIn?.("google")}>
-              <svg viewBox="0 0 18 18" width="17" height="17" aria-hidden="true">
-                <path fill="#4285F4" d="M17.6 9.2c0-.6-.1-1.3-.2-1.9H9v3.5h4.8a4.1 4.1 0 0 1-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.5z"/>
-                <path fill="#34A853" d="M9 18c2.4 0 4.5-.8 6-2.2l-2.9-2.2a5.4 5.4 0 0 1-8-2.8H1.1v2.3A9 9 0 0 0 9 18z"/>
-                <path fill="#FBBC05" d="M4 10.7a5.4 5.4 0 0 1 0-3.4V5H1.1a9 9 0 0 0 0 8l2.9-2.3z"/>
-                <path fill="#EA4335" d="M9 3.6c1.3 0 2.5.5 3.4 1.3L15 2.3A9 9 0 0 0 1.1 5L4 7.3A5.4 5.4 0 0 1 9 3.6z"/>
-              </svg>
-              Continue with Google
-            </button>
-
-            <div className="acct-or"><span>or</span></div>
-
-            {sent ? (
-              <div className="acct-sent">
-                <b>Check your email</b>
-                <p>A sign-in link is on its way to {email}. It expires in an
-                   hour, and opening it is the whole of the process — there
-                   is no password to remember.</p>
-                <button className="acct-again" onClick={() => { setSent(false); setEmail(""); }}>
-                  Use a different address
-                </button>
-              </div>
+            {!supabaseReady ? (
+              <p className="acct-small">
+                Sign-in is not configured on this deployment.
+              </p>
             ) : (
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                if (!email.trim()) return;
-                /* TODO: wire to Supabase magic link */
-                onSignIn?.("email", email.trim());
-                setSent(true);
-              }}>
-                <label className="acct-label" htmlFor="acct-email">Email</label>
-                <input id="acct-email" type="email" autoComplete="email"
-                  placeholder="you@example.com" value={email}
-                  onChange={(e) => setEmail(e.target.value)} required />
-                <button type="submit" className="acct-send">Send a sign-in link</button>
-              </form>
+              <>
+                <button className="acct-google" onClick={withGoogle} disabled={busy}>
+                  <svg viewBox="0 0 18 18" width="17" height="17" aria-hidden="true">
+                    <path fill="#4285F4" d="M17.6 9.2c0-.6-.1-1.3-.2-1.9H9v3.5h4.8a4.1 4.1 0 0 1-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.5z"/>
+                    <path fill="#34A853" d="M9 18c2.4 0 4.5-.8 6-2.2l-2.9-2.2a5.4 5.4 0 0 1-8-2.8H1.1v2.3A9 9 0 0 0 9 18z"/>
+                    <path fill="#FBBC05" d="M4 10.7a5.4 5.4 0 0 1 0-3.4V5H1.1a9 9 0 0 0 0 8l2.9-2.3z"/>
+                    <path fill="#EA4335" d="M9 3.6c1.3 0 2.5.5 3.4 1.3L15 2.3A9 9 0 0 0 1.1 5L4 7.3A5.4 5.4 0 0 1 9 3.6z"/>
+                  </svg>
+                  {busy ? "Opening Google…" : "Continue with Google"}
+                </button>
+
+                {problem && <p className="acct-problem" role="alert">{problem}</p>}
+              </>
             )}
 
             <p className="acct-small">
