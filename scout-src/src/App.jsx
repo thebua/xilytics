@@ -412,9 +412,19 @@ export default function App() {
               <div className="locked-note">
                 <span className="locked-ico" aria-hidden="true">🔒</span>
                 <span className="locked-text">
-                  <b>{meta.lockedLeagues} more leagues</b> — the Championship,
-                  the Süper Lig, the Eredivisie and the rest — open with a
-                  free account.
+                  <b>{meta.lockedLeagues} more leagues</b>
+                  {/*
+                    Named examples make the offer concrete — "54 leagues"
+                    could be anything, "the Championship" is a place someone
+                    has a player in mind from. They cost a line of prose,
+                    which a phone cannot spare, so they are dropped there
+                    rather than shortening the whole sentence for everyone.
+                  */}
+                  <span className="locked-eg">
+                    {" "}— the Championship, the Süper Lig, the Eredivisie
+                    and the rest —
+                  </span>{" "}
+                  open with a free account.
                 </span>
                 <button className="locked-go" onClick={() => setAskSignIn(true)}>
                   Sign in

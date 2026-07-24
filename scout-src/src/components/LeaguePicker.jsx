@@ -15,12 +15,35 @@ export default function LeaguePicker({ meta, value, onChange, counts }) {
     if (!open) return;
     const away = (e) => { if (!box.current?.contains(e.target)) setOpen(false); };
     const esc = (e) => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("mousedown", away);
+    /*
+     * pointerdown rather than mousedown.
+     *
+     * A touch fires pointerdown, then touchend, then a synthesised
+     * mousedown some 300ms later — by which time the menu has opened and
+     * the phantom event lands outside it and closes it again. On a phone
+     * the list appeared to flicker and refuse to stay open. pointerdown is
+     * the one event both kinds of input agree on.
+     */
+    document.addEventListener("pointerdown", away);
     document.addEventListener("keydown", esc);
     return () => {
-      document.removeEventListener("mousedown", away);
+      document.removeEventListener("pointerdown", away);
       document.removeEventListener("keydown", esc);
     };
+  }, [open]);
+
+  /*
+   * On a phone the menu covers the screen from the bottom, and the page
+   * behind it must not scroll — otherwise a drag meant for the league list
+   * takes the page with it and the sheet slides away from under the finger.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const narrow = window.matchMedia("(max-width: 700px)").matches;
+    if (!narrow) return;
+    const held = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = held; };
   }, [open]);
 
   const ids = byStanding([...new Set(meta.pairs.map((p) => p[0]))], meta);
@@ -69,8 +92,22 @@ export default function LeaguePicker({ meta, value, onChange, counts }) {
       </button>
 
       {open && (
-        <div className="lp-menu" role="group" aria-label="Leagues">
-          <div className="lp-actions">
+        <>
+          {/*
+            A backdrop, for the phone layout only. It dims what is behind
+            the sheet and gives a tap target for closing it that is not a
+            tiny × in a corner — CSS hides it entirely on a wide screen,
+            where the menu is a dropdown and needs no such thing.
+          */}
+          <div className="lp-veil" onClick={() => setOpen(false)} />
+
+          <div className="lp-menu" role="group" aria-label="Leagues">
+            <div className="lp-head">
+              <b>Leagues</b>
+              <button className="lp-done" onClick={() => setOpen(false)}>Done</button>
+            </div>
+
+            <div className="lp-actions">
             <button className={"lp-act" + (isAll ? " on" : "")}
               onClick={() => onChange(ALL)}>
               Select all
@@ -109,12 +146,13 @@ export default function LeaguePicker({ meta, value, onChange, counts }) {
                   {meta.codes[id] || "—"}
                 </span>
                 <span className="lp-name">{meta.leagues[id]}</span>
-                <span className="lp-n">{counts?.[id] ?? 0}</span>
-              </button>
-              </div>
-            );
-          })}
-        </div>
+                  <span className="lp-n">{counts?.[id] ?? 0}</span>
+                </button>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

@@ -747,16 +747,23 @@ thead th.metric.adj-h { padding-right: 18px; }
    * to an unknown height either jumps at the end or needs the height
    * measured in script for a transition nobody asked for.
    */
-  .bar .stylegroup,
   .bar .bar-row { display: none; }
+  .bar.open .bar-row { display: grid; margin-top: 14px; }
 
   /*
-   * display:contents lets it sit inline on a wide screen; here it becomes a
-   * block again so the label and buttons stack rather than joining the
-   * position grid.
+   * Style does not appear on a phone at all.
+   *
+   * Five buttons with labels like "Complete forward" take three rows and
+   * push the table further down than the filters they sit above. It is a
+   * refinement — a way of re-sorting a list you are already reading — and
+   * nobody reaches for it before they have seen a single player. The
+   * position row and the table matter more, and on a 390px screen
+   * something has to give.
+   *
+   * It stays in the markup rather than being removed, because a phone that
+   * turns landscape or a tablet at this width should have it back.
    */
-  .bar.open .stylegroup { display: block; margin-top: 13px; }
-  .bar.open .bar-row { display: grid; margin-top: 14px; }
+  .stylegroup { display: none; }
 
   /* the position row loses its divider when nothing follows it */
   .bar:not(.open) .posrow {

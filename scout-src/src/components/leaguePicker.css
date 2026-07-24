@@ -150,3 +150,96 @@
 .lp-act:hover { border-color: var(--faint); color: var(--text); }
 .lp-act.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .lp-actn { margin-left: auto; font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
+
+/* =====================================================================
+ * The sheet, and the veil behind it
+ * =====================================================================
+ * A dropdown anchored to its button is right on a wide screen and wrong
+ * on a phone: 250px of menu hanging off a control that is itself near the
+ * bottom of a scrolling panel either runs off the screen or lands under
+ * the address bar. Worse, scrolling the list scrolled the page and took
+ * the menu with it.
+ *
+ * So on a narrow screen it stops being a dropdown. It covers the lower
+ * half of the screen, sits above everything, scrolls on its own, and
+ * closes on a tap outside or on Done. The desktop behaviour is untouched.
+ * ===================================================================== */
+
+.lp-veil { display: none; }
+.lp-head { display: none; }
+
+@media (max-width: 700px) {
+  .lp-veil {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 380;
+    background: rgba(4, 7, 6, 0.6);
+    backdrop-filter: blur(2px);
+  }
+
+  .lp-menu {
+    position: fixed;
+    z-index: 390;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-width: 0;
+    max-height: 72vh;
+    border-radius: 16px 16px 0 0;
+    border-bottom: 0;
+    padding: 0 6px calc(10px + env(safe-area-inset-bottom));
+    box-shadow: 0 -18px 44px rgba(0, 0, 0, 0.6);
+    animation: lp-rise 0.2s cubic-bezier(0.2, 0.8, 0.3, 1);
+    overscroll-behavior: contain;
+  }
+
+  @keyframes lp-rise {
+    from { transform: translateY(14px); opacity: 0.6; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  /*
+   * The header stays put while the leagues scroll under it, so Done is
+   * reachable without returning to the top of a fifty-league list.
+   */
+  .lp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0 -6px;
+    padding: 14px 14px 10px;
+    background: var(--s2);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .lp-head b {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .lp-done {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 7px 15px;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: var(--accent);
+    color: var(--bg);
+    cursor: pointer;
+  }
+
+  /* room for a thumb rather than a cursor */
+  .lp-row { padding: 11px 8px; font-size: 14px; }
+  .lp-check { width: 18px; height: 18px; font-size: 10px; }
+  .lp-act { padding: 8px 13px; font-size: 12.5px; }
+  .lp-actions { padding: 10px; }
+
+  /* the button itself fills its column rather than holding a desktop width */
+  .lp-button { min-width: 0; width: 100%; padding: 10px 10px; font-size: 14px; }
+}
