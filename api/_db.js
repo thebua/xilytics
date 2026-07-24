@@ -50,11 +50,16 @@ export function db() {
  * `stale-while-revalidate` means the one request that arrives after expiry
  * still gets an instant answer while the refresh happens behind it.
  *
+ * A day rather than an hour: an hour was cautious, and with a weekly
+ * harvest it meant twenty-three needless trips to the database for every
+ * one that could have found anything new. The stale window runs a week,
+ * so even a long-forgotten query answers immediately and refreshes after.
+ *
  * Anything that depends on who is asking must not be cached publicly, or
  * one member's response would be served to the next visitor.
  */
 export const PUBLIC_CACHE =
-  "public, s-maxage=3600, stale-while-revalidate=86400";
+  "public, s-maxage=86400, stale-while-revalidate=604800";
 export const PRIVATE_CACHE = "private, no-store";
 
 export function json(data, { status = 200, cache = PUBLIC_CACHE } = {}) {
