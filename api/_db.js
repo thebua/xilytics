@@ -118,6 +118,56 @@ export function serverError(err, where) {
 /* ------------------------------------------------------------- identity */
 
 /*
+ * Answering "who is this" costs two round trips: one to Supabase to check
+ * the token, one to our own database for the tier. Both are cheap in
+ * isolation and neither is cheap on every request — a visitor flicking
+ * between positions pays for the same answer four or five times a minute,
+ * and the Supabase call in particular is a separate service over the
+ * network rather than a query on a warm pool.
+ *
+ * So the answer is held for a short while, per token, per warm function
+ * instance.
+ *
+ * The window is deliberately short. A token that has been revoked, or a
+ * tier that has just been paid for, stays wrong for up to a minute — and
+ * that is the whole of the cost, because what sits behind this is a list
+ * of football leagues rather than anything private. A minute of stale
+ * access to public statistics is a fair trade for taking a third off the
+ * time every request spends waiting.
+ *
+ * Serverless instances are recycled often and each keeps its own map, so
+ * this stays small without any sweeping: a cold instance starts empty and
+ * a busy one holds however many people are reading at once.
+ */
+const IDENTITY_TTL = 60_000;
+const identityCache = new Map();
+
+function cachedIdentity(token) {
+  const held = identityCache.get(token);
+  if (!held) return undefined;
+  if (Date.now() > held.until) {
+    identityCache.delete(token);
+    return undefined;
+  }
+  return held.who;
+}
+
+function holdIdentity(token, who) {
+  /*
+   * A map that only grows is a leak, however slow. Nothing here needs to be
+   * clever — past a few hundred entries the oldest are dropped, and anyone
+   * whose answer goes with them simply pays for one more lookup.
+   */
+  if (identityCache.size > 500) {
+    for (const k of identityCache.keys()) {
+      identityCache.delete(k);
+      if (identityCache.size <= 250) break;
+    }
+  }
+  identityCache.set(token, { who, until: Date.now() + IDENTITY_TTL });
+}
+
+/*
  * Who is asking, if anyone.
  *
  * Supabase signs a JWT for every signed-in user and the browser sends it as
@@ -131,6 +181,9 @@ export async function whoIs(request) {
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
   if (!token) return null;
 
+  const held = cachedIdentity(token);
+  if (held !== undefined) return held;
+
   const url = process.env.SUPABASE_URL;
   const anon = process.env.SUPABASE_ANON_KEY;
   if (!url || !anon) return null;
@@ -142,12 +195,24 @@ export async function whoIs(request) {
     const res = await fetch(`${url}/auth/v1/user`, {
       headers: { authorization: `Bearer ${token}`, apikey: anon },
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      /*
+       * A rejected token is worth remembering too. An expired session that
+       * keeps being sent would otherwise ask Supabase the same question on
+       * every request and get the same no.
+       */
+      holdIdentity(token, null);
+      return null;
+    }
     user = await res.json();
   } catch {
+    /* A network failure is not an answer, so nothing is remembered. */
     return null;
   }
-  if (!user?.id) return null;
+  if (!user?.id) {
+    holdIdentity(token, null);
+    return null;
+  }
 
   /* The tier lives in our own table, not in the token, so a user cannot
      grant themselves access by editing a claim. */
@@ -160,20 +225,38 @@ export async function whoIs(request) {
     p?.tier === "member" &&
     (p.tier_expires === null || new Date(p.tier_expires) > new Date());
 
-  return { id: user.id, email: user.email, tier: active ? "member" : "free" };
+  const who = {
+    id: user.id,
+    email: user.email,
+    tier: active ? "member" : "free",
+  };
+  holdIdentity(token, who);
+  return who;
 }
 
 /*
  * The leagues this caller may read. Members get everything; everyone else
  * gets the open ones. Returning ids rather than a boolean keeps the rule
  * in one place — every query filters on the same list.
+ *
+ * Which leagues are open is a business decision that changes a few times a
+ * year, and it was being fetched on every anonymous request. Held for the
+ * same minute as an identity, for the same reason and at the same cost.
  */
+let openLeagues = null;
+let openLeaguesUntil = 0;
+
 export async function readableLeagues(who) {
   if (who?.tier === "member") return null;          // null means "no filter"
+
+  if (openLeagues && Date.now() < openLeaguesUntil) return openLeagues;
+
   const { rows } = await db().query(
     `select id from leagues where is_open order by id`
   );
-  return rows.map((r) => r.id);
+  openLeagues = rows.map((r) => r.id);
+  openLeaguesUntil = Date.now() + IDENTITY_TTL;
+  return openLeagues;
 }
 
 /* -------------------------------------------------------------- parsing */
