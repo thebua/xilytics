@@ -1,0 +1,175 @@
+.filters {
+  background: var(--s1);
+  border-radius: var(--r);
+  margin-bottom: 16px;
+  box-shadow: var(--lift-sm);
+  overflow: hidden;
+}
+
+/* ---- the always-visible bar ---- */
+.f-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 16px;
+  flex-wrap: wrap;
+}
+.f-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--dim);
+  padding: 3px 0;
+  flex: none;
+}
+.f-toggle:hover { color: var(--text); }
+.f-chev {
+  font-family: var(--mono);
+  font-size: 15px;
+  width: 15px;
+  text-align: center;
+  color: var(--faint);
+}
+.f-count {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--accent);
+  color: var(--bg);
+  border-radius: 9px;
+  padding: 1px 7px;
+}
+
+.f-chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.f-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--s3);
+  border: 0;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 11.5px;
+  color: var(--dim);
+  cursor: pointer;
+}
+.f-chip b { font-family: var(--mono); color: var(--accent); font-weight: 700; }
+.f-chip:hover { color: var(--text); }
+.f-chip:hover .f-x { color: var(--warn); }
+.f-x { color: var(--faint); font-size: 13px; line-height: 1; }
+
+.f-hits {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.f-hits b { color: var(--text); font-weight: 500; }
+.f-clear {
+  background: transparent;
+  border: 0;
+  color: var(--faint);
+  font-size: 11.5px;
+  cursor: pointer;
+  padding: 3px 0;
+}
+.f-clear:hover { color: var(--warn); }
+
+/* ---- the panel ---- */
+.f-body {
+  padding: 4px 16px 18px;
+  border-top: 1px solid var(--line-soft);
+}
+.f-lede {
+  margin: 14px 0 16px;
+  font-size: 12.5px;
+  color: var(--faint);
+  line-height: 1.65;
+  max-width: 64ch;
+}
+
+.f-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px 22px;
+}
+.f-grid.metrics {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.f-slider { display: block; cursor: pointer; }
+.fs-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+.fs-label { font-size: 12.5px; color: var(--dim); }
+.fs-label em {
+  font-style: normal;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--warn);
+  opacity: 0.75;
+  margin-left: 5px;
+}
+.f-slider.on .fs-label { color: var(--text); }
+.fs-value {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.f-slider input[type="range"] {
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--faint);
+}
+.f-slider.on input[type="range"] { accent-color: var(--accent); }
+
+.f-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  background: transparent;
+  border: 0;
+  color: var(--faint);
+  font-size: 12.5px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.f-more:hover { color: var(--dim); }
+.f-more-n {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: var(--s3);
+  border-radius: 9px;
+  padding: 1px 7px;
+}
+
+/* =====================================================================
+ * Phones: the thresholds panel
+ * =====================================================================
+ * One slider per row, its label above rather than beside it — a name
+ * and a value competing for the same line leaves neither enough width
+ * to read. The sliders also claim horizontal touch, or dragging one
+ * scrolls the page instead of moving it.
+ * ===================================================================== */
+@media (max-width: 640px) {
+  .f-grid { grid-template-columns: 1fr; gap: 4px; }
+  .f-grid input[type="range"] { touch-action: pan-x; height: 30px; }
+  .f-lede { font-size: 12.5px; }
+  .f-chips { gap: 6px; }
+  .f-chip { font-size: 11.5px; padding: 5px 9px; }
+  .f-bar { flex-wrap: wrap; gap: 8px; }
+}

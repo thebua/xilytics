@@ -1,0 +1,393 @@
+/* ---- boot states ---- */
+.boot {
+  min-height: 70vh;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  color: var(--dim);
+  gap: 6px;
+}
+.boot b {
+  font-family: var(--display);
+  font-size: 22px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.boot p { margin: 0; font-size: 13px; }
+.boot-hint { color: var(--faint); }
+.boot code {
+  font-family: var(--mono);
+  background: var(--raised);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* ---- masthead ---- */
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(7, 11, 10, 0.94);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.masthead .wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: var(--mast-h);
+  flex-wrap: wrap;
+}
+
+/*
+ * Below this width the bar would wrap onto two rows and the table header
+ * would no longer know where to park, so the pieces shrink instead.
+ */
+@media (max-width: 1080px) {
+  .masthead .wrap { gap: 12px; }
+  .masthead nav button { padding: 7px 10px; font-size: 12.5px; }
+  .gsearch { min-width: 140px; }
+  .logo-sub { display: none; }
+}
+@media (max-width: 720px) {
+  .masthead .wrap { gap: 8px; }
+  .masthead nav button { padding: 6px 8px; font-size: 12px; }
+  .logo { font-size: 17px; }
+  .gsearch { min-width: 110px; }
+  .gsearch input { font-size: 12px; padding-left: 26px; }
+}
+
+/*
+ * The wordmark as it appears everywhere else on the site: an outlined
+ * square holding a lime XI, then "lytics" in the same weight. Matching it
+ * here rather than inventing a second lockup is most of what makes the
+ * scout feel like part of xilytics rather than a separate tool.
+ */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.mark {
+  width: 30px; height: 30px;
+  border-radius: 9px;
+  background: none;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+.logo-sub {
+  color: var(--faint);
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  padding-left: 9px;
+  border-left: 1px solid var(--line);
+}
+
+.masthead nav { display: flex; gap: 2px; }
+.masthead nav button {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.masthead nav button:hover { color: var(--text); background: var(--raised); }
+.masthead nav button[aria-current="page"] { background: var(--raised); color: var(--accent); }
+
+.masthead .spacer { flex: 1; }
+
+.gsearch { position: relative; min-width: 232px; }
+.gsearch input {
+  width: 100%;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 11px 7px 30px;
+  border-radius: var(--r-sm);
+}
+.gsearch input:focus { outline: none; border-color: var(--accent); }
+.gsearch input::placeholder { color: var(--faint); }
+.gicon {
+  position: absolute;
+  left: 10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--faint);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+main.wrap { padding-top: 22px; padding-bottom: 74px; }
+
+/* ---- selection tray ---- */
+.tray {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 11px 14px;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.6);
+  max-width: calc(100vw - 32px);
+  animation: rise 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+@keyframes rise {
+  from { transform: translateX(-50%) translateY(120%); }
+  to { transform: translateX(-50%) translateY(0); }
+}
+.tray-hint {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  letter-spacing: 0.06em;
+}
+.tray-list { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 7px 4px 5px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.chip b { font-weight: 600; }
+.chip button {
+  border: 0;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 0 0 2px;
+}
+.chip button:hover { color: var(--warn); }
+.tray-go {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tray-go:hover { filter: brightness(1.08); }
+
+@media (max-width: 620px) {
+  .tray { flex-wrap: wrap; justify-content: center; }
+  .tray-hint { display: none; }
+}
+
+/* ---- footer ---- */
+.foot {
+  border-top: 1px solid var(--line);
+  padding: 20px 0 40px;
+}
+.foot .wrap {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  letter-spacing: 0.04em;
+}
+.swatch-key { display: flex; align-items: center; gap: 6px; }
+.swatch {
+  display: inline-block;
+  width: 26px; height: 7px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #FF4D4D, #8A97A8, #00E5A0);
+}
+
+/* the profile has its own hero, so its heading is for screen readers only */
+.sr-only-head {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---- masthead: quieter, so the page title can lead ---- */
+.masthead nav button {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: capitalize;
+  padding: 7px 13px;
+}
+.masthead nav button[aria-current="page"] {
+  background: var(--s3);
+  color: var(--text);
+  font-weight: 600;
+}
+main.wrap { padding-top: 0; }
+
+
+/* =====================================================================
+ * Phones
+ * =====================================================================
+ * The masthead carries a logo, four views and a search field. Those
+ * cannot share a 390px line, so the bar gives up being one row: logo
+ * and search on top, views beneath.
+ *
+ * The important part is that the bar stays opaque. A translucent
+ * sticky bar looks refined until content scrolls under it, and then
+ * headings read through the nav and nothing is legible. Solid colour
+ * and a border, and the page starts below whatever height it ends up.
+ * ===================================================================== */
+@media (max-width: 640px) {
+  .masthead {
+    height: auto;
+    background: var(--bg);
+    backdrop-filter: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .masthead .wrap {
+    /*
+     * The desktop bar is a fixed 58px. Two rows do not fit in 58px, so
+     * the height goes back to auto — leaving it set is what pushed the
+     * nav out of the bar and let the page heading show through it.
+     */
+    height: auto;
+    flex-wrap: wrap;
+    padding: 11px 14px 0;
+    row-gap: 0;
+    gap: 10px;
+  }
+
+  .logo { font-size: 17px; gap: 8px; }
+  .logo-sub { display: none; }
+  .mark { width: 28px; height: 28px; font-size: 12px; }
+
+  /* search shares the top row with the logo */
+  .gsearch {
+    order: 2;
+    margin-left: auto;
+    min-width: 0;
+    flex: 1;
+    max-width: 175px;
+  }
+  .gsearch input {
+    font-size: 13px;
+    padding: 9px 10px 9px 30px;
+    border-radius: var(--r-sm);
+  }
+
+  /*
+   * Views take a row of their own, divided evenly. No negative margins:
+   * an earlier attempt pulled the row out to the screen edges and left
+   * a gap above it while confusing the bar's own height, which is why
+   * the page heading kept ending up underneath.
+   */
+  .masthead nav {
+    order: 3;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin: 0;
+    padding: 0 0 10px;
+    background: none;
+  }
+  .masthead nav button {
+    padding: 9px 2px;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    text-align: center;
+  }
+
+  main.wrap { padding-top: 18px; }
+  .wrap { padding-left: 14px; padding-right: 14px; }
+}
+
+@media (max-width: 380px) {
+  .logo { font-size: 15.5px; }
+  .gsearch { max-width: 138px; }
+  .masthead nav button { font-size: 10.5px; padding: 8px 1px; }
+  .wrap { padding-left: 12px; padding-right: 12px; }
+}
+
+/*
+ * "Search any player" does not fit a phone-width field and truncates to
+ * "Search any pl…", which looks broken rather than concise. CSS cannot
+ * change the attribute, so the placeholder is hidden and the field's own
+ * icon carries the meaning — a magnifier in an empty box is understood.
+ */
+@media (max-width: 640px) {
+  .gsearch input::placeholder { color: transparent; }
+  .gsearch input:focus::placeholder { color: var(--faint); }
+}
+
+/*
+ * Links out to the rest of the site.
+ *
+ * Quieter than the view buttons beside them, because switching between
+ * Explore and Compare is what a reader does constantly and leaving for
+ * the lineup builder is what they do once. Same bar, different weight.
+ */
+.sitenav {
+  display: flex;
+  gap: 2px;
+  margin-right: 6px;
+}
+.sitenav a {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--faint);
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+  transition: color 0.14s, background 0.14s;
+}
+.sitenav a:hover { color: var(--text); background: var(--hover); }
+
+/* the logo is an anchor now, not a button */
+a.logo { text-decoration: none; color: inherit; }
+
+@media (max-width: 900px) {
+  /* the search field needs the room more than these do */
+  .sitenav { display: none; }
+}

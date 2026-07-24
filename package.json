@@ -5,6 +5,10 @@
   "engines": {
     "node": ">=20"
   },
+  "scripts": {
+    "build": "npm --prefix scout-src ci && npm --prefix scout-src run build && node scripts/copy-scout.mjs",
+    "dev:scout": "npm --prefix scout-src run dev"
+  },
   "dependencies": {
     "pg": "^8.13.1"
   }

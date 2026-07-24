@@ -1,0 +1,19 @@
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+.ring { fill: none; stroke: var(--line); stroke-width: 1; }
+.ring.mid { stroke-dasharray: 2 5; }
+.spoke { stroke: var(--line); stroke-width: 1; }
+.blob { fill-opacity: 0.13; stroke-width: 2.5; stroke-linejoin: round; }
+.dot { stroke: var(--surface); stroke-width: 1.5; }
+.axis-label {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  fill: var(--text);
+  text-transform: none;
+}
+.axis-weight {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  fill: var(--faint);
+}

@@ -1,0 +1,684 @@
+import { Fragment, useEffect, useMemo, useState } from "react";
+import Avatar from "./Avatar";
+import Filters from "./Filters";
+import LeaguePicker from "./LeaguePicker";
+import LeagueTag from "./LeagueTag";
+import { ALL, NONE, MAX_PICK, ramp, band, fmt, keyOf, inLeagues, confidenceOf, scoreBand } from "../lib/util";
+import { exportRows } from "../lib/exportCsv";
+import { pageList } from "../lib/pagination";
+import "./explore.css";
+
+export default function Explore({
+  data, filters, setFilters, rules, setRules, marked, setMarked, onOpen,
+  panelOpen, setPanelOpen,
+}) {
+  const { meta, rows } = data;
+  const [sort, setSort] = useState({ col: "sc", dir: -1 });
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(25);
+  const [mode, setMode] = useState("rank");   // "rank" or "figure"
+  const [openCell, setOpenCell] = useState(null);  // `${rowKey}:${colIdx}` of an open theme strip
+
+  const seasonNames = useMemo(() => {
+    const ids = filters.league === ALL
+      ? meta.pairs.map((p) => p[1])
+      : filters.league === NONE
+        ? []
+        : meta.pairs.filter((p) => filters.league.includes(p[0])).map((p) => p[1]);
+    const names = [...new Set(ids.map((id) => meta.seasons[id]))];
+    return names.sort((a, b) => String(b).localeCompare(String(a), undefined, { numeric: true }));
+  }, [meta, filters.league]);
+
+  /* how many players each league would bring, before any other filter */
+  const leagueCounts = useMemo(() => {
+    const out = {};
+    for (const r of rows) {
+      if (r.pos !== filters.position) continue;
+      if (filters.season !== ALL && meta.seasons[r.sid] !== filters.season) continue;
+      out[r.lid] = (out[r.lid] || 0) + 1;
+    }
+    return out;
+  }, [rows, meta, filters.position, filters.season]);
+
+  const pool = useMemo(() => rows.filter((r) =>
+    inLeagues(r, filters.league) &&
+    (filters.season === ALL || meta.seasons[r.sid] === filters.season) &&
+    r.pos === filters.position
+  ), [rows, meta, filters]);
+
+  /* the basics: who is even eligible before any requirement is applied */
+  const eligible = useMemo(() => {
+    const q = filters.query.trim().toLowerCase();
+    return pool.filter((r) => {
+      if (r.m < filters.minMinutes) return false;
+      if (filters.ageLo && (r.age == null || r.age < filters.ageLo)) return false;
+      if (filters.ageHi && (r.age == null || r.age > filters.ageHi)) return false;
+      if (filters.team && r.t !== filters.team) return false;
+      if (filters.nat && r.nat !== filters.nat) return false;
+      if (q && !(r.n.toLowerCase().includes(q) || r.t.toLowerCase().includes(q))) return false;
+      return true;
+    });
+  }, [pool, filters]);
+
+  /* then the thresholds, which are the part worth counting separately */
+  const shown = useMemo(() => {
+    const ab = Object.entries(rules.abilities);
+    const mt = Object.entries(rules.metrics);
+    const roleMin = filters.roleMin || 0;
+    if (!ab.length && !mt.length && !roleMin) return eligible;
+    return eligible.filter((r) => {
+      for (const [i, min] of ab) {
+        const v = r.th?.[+i];
+        if (v == null || v < min) return false;
+      }
+      for (const [i, min] of mt) {
+        const v = r.p?.[+i];
+        if (v == null || v < min) return false;
+      }
+      if (roleMin && filters.role != null) {
+        const f = r.rf?.[filters.role];
+        if (f == null || f < roleMin) return false;
+      }
+      return true;
+    });
+  }, [eligible, rules, filters.role, filters.roleMin]);
+
+  const axes = meta.columns[filters.position];
+
+  const teams = useMemo(
+    () => [...new Set(pool.map((r) => r.t))].sort((a, b) => a.localeCompare(b)),
+    [pool]
+  );
+
+  /* a club filter left over from another league would empty the table */
+  useEffect(() => {
+    if (filters.team && !teams.includes(filters.team)) {
+      setFilters({ ...filters, team: null });
+    }
+  }, [teams]);
+
+  const sorted = useMemo(() => {
+    const list = [...shown];
+    const { col, dir } = sort;
+
+    /* Ability average, used to break ties on the headline score. Worked out
+       once per player rather than inside the comparator, which would run it
+       O(n log n) times. */
+    const meanCache = new Map();
+    const mean = (r) => {
+      const k = keyOf(r);
+      if (!meanCache.has(k)) {
+        const live = (r.th || []).filter((v) => v != null);
+        meanCache.set(k, live.length ? live.reduce((s, v) => s + v, 0) / live.length : 0);
+      }
+      return meanCache.get(k);
+    };
+
+    list.sort((a, b) => {
+      if (col === "n") return a.n.localeCompare(b.n) * -dir;
+      let x, y;
+      if (col === "sc") {
+        if (filters.role != null) { x = a.rf?.[filters.role] ?? -1; y = b.rf?.[filters.role] ?? -1; }
+        else {
+          x = a.sc ?? -1; y = b.sc ?? -1;
+          /*
+           * Every pool has a top player, so across leagues the 99s pile up
+           * — a dozen league leaders sharing the top of the table with no
+           * obvious order between them.
+           *
+           * The tie breaks on the adjusted score, which answers exactly
+           * the question a reader is asking at that point: which of these
+           * 99s is worth more. That figure used to be hidden, and sorting
+           * by something invisible was the problem; it has its own column
+           * now, so the order can be read straight off the screen.
+           *
+           * Where two leagues rate the same, the ability average settles
+           * it — a wider read of the same in-league evidence.
+           */
+          if (x === y) {
+            const ax = a.sc2 ?? a.sc ?? -1, ay = b.sc2 ?? b.sc ?? -1;
+            if (ax !== ay) { x = ax; y = ay; }
+            else { x = mean(a); y = mean(b); }
+          }
+        }
+      }
+      else if (col === "adj") { x = a.sc2 ?? a.sc ?? -1; y = b.sc2 ?? b.sc ?? -1; }
+      else if (col === "m") { x = a.m; y = b.m; }
+      else if (col === "age") { x = a.age ?? 0; y = b.age ?? 0; }
+      else if (col === "rt") { x = a.rt; y = b.rt; }
+      else if (col === "ov") { x = a.sc ?? -1; y = b.sc ?? -1; }
+      else {
+        const ax = axes[Number(col)];
+        if (ax?.k === "t") { x = a.th?.[ax.i] ?? -1; y = b.th?.[ax.i] ?? -1; }
+        else { x = a.p[ax.i] ?? -1; y = b.p[ax.i] ?? -1; }
+      }
+      return (x - y) * dir;
+    });
+    return list;
+  }, [shown, sort, axes, filters.role]);
+
+  const pages = perPage === 0 ? 1 : Math.max(1, Math.ceil(sorted.length / perPage));
+  const safePage = Math.min(page, pages);
+  const from = perPage === 0 ? 0 : (safePage - 1) * perPage;
+  const slice = perPage === 0 ? sorted : sorted.slice(from, from + perPage);
+
+  const spread = useMemo(() => {
+    const L = new Set(shown.map((r) => r.lid));
+    const S = new Set(shown.map((r) => meta.seasons[r.sid]));
+    return { league: L.size > 1, season: S.size > 1, any: L.size > 1 || S.size > 1 };
+  }, [shown, meta]);
+
+  /*
+   * The adjusted column only earns its width when more than one league is on
+   * screen and the calibration actually moves something — within a single
+   * competition it would just repeat the score.
+   */
+  const showAdj = useMemo(() => {
+    if (!spread.league) return false;
+    return shown.some((r) => r.sc != null && r.sc2 != null && r.sc2 !== Math.round(r.sc));
+  }, [shown, spread.league]);
+
+  const set = (patch) => { setFilters({ ...filters, ...patch }); setPage(1); };
+
+  const toggleSort = (col) => {
+    setSort((s) => s.col === col ? { col, dir: -s.dir } : { col, dir: -1 });
+    setPage(1);
+  };
+
+  const toggleMark = (row) => {
+    const has = marked.some((m) => keyOf(m) === keyOf(row));
+    if (has) setMarked(marked.filter((m) => keyOf(m) !== keyOf(row)));
+    else if (marked.length < MAX_PICK) setMarked([...marked, row]);
+  };
+
+  const exportCsv = () => exportRows({ rows: sorted, meta, filters, axes });
+
+  const arrow = (col) => sort.col === col
+    ? <span className="arrow">{sort.dir < 0 ? "▼" : "▲"}</span> : null;
+
+  return (
+    <>
+      <div className="bar">
+        <div className="posrow">
+          <span className="posrow-label">Position</span>
+          <div className="seg">
+            {meta.order.map((p) => {
+              /*
+               * Rows are fetched one position at a time, so a count only
+               * exists for the one on screen. Judging the others by what
+               * is in memory would disable all of them — they are always
+               * available, we simply have not asked for them yet.
+               */
+              const loaded = p === filters.position;
+              const n = loaded
+                ? rows.filter((r) =>
+                    inLeagues(r, filters.league) &&
+                    (filters.season === ALL || meta.seasons[r.sid] === filters.season) &&
+                    r.pos === p).length
+                : null;
+              return (
+                <button key={p}
+                  aria-pressed={p === filters.position}
+                  title={n == null
+                    ? meta.positions[p]
+                    : `${meta.positions[p]} — ${n} in pool`}
+                  onClick={() => {
+                    set({ position: p, role: null, roleMin: 0, team: null });
+                    setRules({ abilities: {}, metrics: {} });
+                    setSort({ col: "sc", dir: -1 });
+                    setMarked([]);
+                  }}>
+                  {p}
+                </button>
+              );
+            })}
+          </div>
+
+          {(meta.roles[filters.position] || []).length > 0 && (
+            <>
+              <span className="posrow-label role-label">Style</span>
+              <div className="seg roles-seg">
+                <button aria-pressed={filters.role == null}
+                  onClick={() => set({ role: null })}>
+                  Any
+                </button>
+                {meta.roles[filters.position].map((r, i) => (
+                  <button key={r.name} aria-pressed={filters.role === i}
+                    title={r.blurb}
+                    onClick={() => set({ role: filters.role === i ? null : i })}>
+                    {r.name}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="bar-row">
+          <Field label="League">
+            <LeaguePicker meta={meta} value={filters.league}
+              counts={leagueCounts}
+              onChange={(league) => set({ league })} />
+          </Field>
+
+          <Field label="Season">
+            <select value={filters.season} onChange={(e) => set({ season: e.target.value })}>
+              <option value={ALL}>All seasons</option>
+              {seasonNames.map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </Field>
+
+          <Field label={<>Minimum minutes <b>{filters.minMinutes}</b></>} wide>
+            <input type="range" min={500} max={3000} step={100}
+              value={filters.minMinutes}
+              onChange={(e) => set({ minMinutes: Number(e.target.value) })} />
+          </Field>
+
+          <Field label="Age">
+            <div className="pair">
+              <input type="number" placeholder="16" min={14} max={45}
+                value={filters.ageLo || ""}
+                onChange={(e) => set({ ageLo: e.target.value ? Number(e.target.value) : null })} />
+              <span>to</span>
+              <input type="number" placeholder="42" min={14} max={45}
+                value={filters.ageHi || ""}
+                onChange={(e) => set({ ageHi: e.target.value ? Number(e.target.value) : null })} />
+            </div>
+          </Field>
+
+          <Field label="Club">
+            <select value={filters.team || ""}
+              onChange={(e) => set({ team: e.target.value || null })}>
+              <option value="">All clubs</option>
+              {teams.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </Field>
+
+          <Field label="Nationality">
+            <select value={filters.nat || ""}
+              onChange={(e) => set({ nat: e.target.value || null })}>
+              <option value="">All nationalities</option>
+              {(meta.nationalities || []).map((x) => (
+                <option key={x.nat} value={x.nat}>{x.nat} ({x.n})</option>
+              ))}
+            </select>
+          </Field>
+
+          {filters.role != null && (
+            <Field label={<>Style fit <b>{filters.roleMin || 0}+</b></>} wide>
+              <input type="range" min={0} max={95} step={5}
+                value={filters.roleMin || 0}
+                onChange={(e) => set({ roleMin: Number(e.target.value) })} />
+            </Field>
+          )}
+
+          <Field label="Search">
+            <input type="text" placeholder="Player or club" className="txt"
+              value={filters.query} onChange={(e) => set({ query: e.target.value })} />
+          </Field>
+
+          <div className="fld push">
+            <span className="fld-label">&nbsp;</span>
+            <div className="pair">
+              <button className="pill-btn" onClick={exportCsv}>Export CSV</button>
+              <button className="pill-btn danger" onClick={() => {
+                setFilters({ ...filters, minMinutes: 900, ageLo: null, ageHi: null,
+                             team: null, nat: null, query: "", roleMin: 0 });
+                setRules({ abilities: {}, metrics: {} });
+                setSort({ col: "sc", dir: -1 });
+                setPage(1);
+              }}>Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Filters meta={meta} position={filters.position}
+        rules={rules} setRules={setRules}
+        open={panelOpen} setOpen={setPanelOpen}
+        matched={shown.length} total={eligible.length} />
+
+      <div className="tablebox">
+        <div className="table-key">
+          <div className="mode-switch" role="group" aria-label="What the columns show">
+            <button aria-pressed={mode === "rank"} onClick={() => setMode("rank")}>
+              Rankings
+            </button>
+            <button aria-pressed={mode === "figure"} onClick={() => setMode("figure")}>
+              Figures
+            </button>
+          </div>
+          <span className="key-text">
+            {filters.role != null
+              ? <><b>{meta.roles[filters.position][filters.role].name}</b> —{" "}
+                  {meta.roles[filters.position][filters.role].blurb}{" "}
+                  Sorted by how closely each player matches that style, not by
+                  how good they are.</>
+              : mode === "rank"
+              ? <>Each column shows where a player ranks out of 100 against{" "}
+                  {meta.positions[filters.position].toLowerCase()} in the same
+                  league and season. Hover a cell for the figure behind it.</>
+              : <>Each column shows the figure itself, in the unit under the
+                  heading. Colour still marks how that figure ranks.</>}
+          </span>
+        </div>
+        {slice.length === 0 ? (
+          <div className="blank">
+            <b>Nothing clears every requirement</b>
+            {Object.keys(rules.abilities).length + Object.keys(rules.metrics).length > 0
+              ? <>{eligible.length} players fit the league, age and minutes —
+                  the thresholds above rule them all out. Lower one and they
+                  come back.</>
+              : <>Try widening the minutes or age range.</>}
+          </div>
+        ) : (
+          <div className="scrollx">
+            <table>
+              <thead>
+                <tr>
+                  <th className="pick" />
+                  <th className="lead" onClick={() => toggleSort("n")}>Player {arrow("n")}</th>
+                  <th onClick={() => toggleSort("age")}>Age {arrow("age")}</th>
+                  <th onClick={() => toggleSort("m")}>Min {arrow("m")}</th>
+                  <th onClick={() => toggleSort("rt")}>Rating {arrow("rt")}</th>
+                  {axes.map((ax, i) => {
+                    if (ax.k === "t") {
+                      return (
+                        <th key={"t" + ax.i} onClick={() => toggleSort(String(i))}
+                          className="metric theme-col"
+                          title={`${ax.name} — ability score, click a cell to see what it is built from`}>
+                          <span className="h-name">{ax.short} {arrow(String(i))}</span>
+                          <span className="h-unit">ability</span>
+                        </th>
+                      );
+                    }
+                    const mi = ax.i;
+                    return (
+                      <th key={"m" + mi} onClick={() => toggleSort(String(i))}
+                        className={"metric" + (meta.invert[mi] ? " inv" : "")}
+                        title={`${meta.labels[mi]}${meta.help[mi] ? " — " + meta.help[mi] : ""}`}>
+                        <span className="h-name">{meta.short[mi]} {arrow(String(i))}</span>
+                        <span className="h-unit">
+                          {mode === "figure" ? meta.units[mi] : "of 100"}
+                          {meta.invert[mi] ? " · lower better" : ""}
+                        </span>
+                      </th>
+                    );
+                  })}
+                  {filters.role != null && (
+                    <th className="metric" onClick={() => toggleSort("sc")}>
+                      <span className="h-name">
+                        {meta.roles[filters.position][filters.role].name} {arrow("sc")}
+                      </span>
+                      <span className="h-unit">fit · level</span>
+                    </th>
+                  )}
+                  <th className="metric score-h" onClick={() => toggleSort(filters.role != null ? "ov" : "sc")}>
+                    <span className="h-name">Score {arrow(filters.role != null ? "ov" : "sc")}</span>
+                    <span className="h-unit">rank in pool</span>
+                  </th>
+                  {showAdj && (
+                    <th className="metric adj-h" onClick={() => toggleSort("adj")}
+                      title="The same score moved for how strong the league is, so figures from different competitions can be read side by side. A separate model from the in-pool score.">
+                      <span className="h-name">Adj {arrow("adj")}</span>
+                      <span className="h-unit">league</span>
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {slice.map((r, i) => {
+                  const isMarked = marked.some((m) => keyOf(m) === keyOf(r));
+                  /* which theme cell in this row is open, and its column def */
+                  const openHere = openCell?.startsWith(keyOf(r) + ":")
+                    ? Number(openCell.split(":")[1]) : null;
+                  const openAx = openHere != null ? axes[openHere] : null;
+                  /* total columns: pick + player + age + min + rating + axes + [role] + score + [adjusted] */
+                  const totalCols = 5 + axes.length + (filters.role != null ? 1 : 0) + 1 + (showAdj ? 1 : 0);
+                  return (
+                    <Fragment key={keyOf(r)}>
+                    <tr className={isMarked ? "sel" : ""} tabIndex={0}
+                      onClick={(e) => { if (!e.target.closest(".pick")) onOpen(r); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") onOpen(r); }}>
+                      <td className="pick">
+                        <input type="checkbox" checked={isMarked}
+                          aria-label={`Select ${r.n}`}
+                          onChange={() => toggleMark(r)}
+                          onClick={(e) => e.stopPropagation()} />
+                      </td>
+                      <td>
+                        <div className="who">
+                          <span className="rk">{from + i + 1}</span>
+                          <Avatar row={r} base={meta.imgbase} size={34} />
+                          <span className="who-id">
+                            <span className="who-n">
+                              {r.flag && (
+                                <img className="who-flag" src={r.flag} alt={r.nat || ""}
+                                  title={r.nat || ""} loading="lazy" />
+                              )}
+                              {r.n}
+                            </span>
+                            <span className="who-m">
+                              {spread.any && <LeagueTag row={r} meta={meta} withSeason={spread.season} />}
+                              {r.t}{r.dp ? ` · ${r.dp}` : ""}
+                            </span>
+                          </span>
+                        </div>
+                      </td>
+                      <td data-label="Age"><span className="cel">{r.age ?? "—"}</span></td>
+                      <td data-label="Min"><span className="cel">{r.m}</span></td>
+                      <td data-label="Rating"><span className="cel">{r.rt ? r.rt.toFixed(2) : "—"}</span></td>
+                      {axes.map((ax, ci) => {
+                        /* a theme column: show the ability score, click to expand */
+                        if (ax.k === "t") {
+                          const tv = r.th?.[ax.i];
+                          if (tv == null) {
+                            return <td key={"t" + ci} data-label={ax.short}><span className="pc"><span className="tx dim">—</span></span></td>;
+                          }
+                          const cellId = `${keyOf(r)}:${ci}`;
+                          const isOpen = openCell === cellId;
+                          const c = ramp(tv);
+                          return (
+                            <td key={"t" + ci} data-label={ax.short}>
+                              <span className={"pc theme-cell" + (isOpen ? " open" : "")}
+                                role="button" tabIndex={0}
+                                title={`${ax.name} ability — click for the metrics behind it`}
+                                onClick={(e) => { e.stopPropagation(); setOpenCell(isOpen ? null : cellId); }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault(); e.stopPropagation();
+                                    setOpenCell(isOpen ? null : cellId);
+                                  }
+                                }}>
+                                <span className={"v-main" + (tv >= 88 ? " elite" : tv < 25 ? " poor" : "")}>
+                                  {Math.round(tv)}
+                                </span>
+                                <span className="v-bar">
+                                  <i style={{ width: `${Math.max(tv, 2)}%`, background: c }} />
+                                </span>
+                                <span className="theme-caret" aria-hidden="true">{isOpen ? "−" : "+"}</span>
+                              </span>
+                            </td>
+                          );
+                        }
+                        /* a raw metric column: unchanged */
+                        const mi = ax.i;
+                        const p = r.p[mi], v = r.v[mi];
+                        if (p == null || v == null) {
+                          return <td key={"m" + mi} data-label={meta.short[mi]}><span className="pc"><span className="tx dim">—</span></span></td>;
+                        }
+                        const c = ramp(p);
+                        const shown = mode === "rank" ? Math.round(p) : fmt(v);
+                        const behind = mode === "rank"
+                          ? `${fmt(v)} ${meta.units[mi]}`
+                          : `ranks ${Math.round(p)} of 100`;
+                        return (
+                          <td key={"m" + mi} data-label={meta.short[mi]}>
+                            <span className="pc" title={`${meta.labels[mi]} — ${behind}`}>
+                              <span className={"v-main" + (p >= 88 ? " elite" : p < 25 ? " poor" : "")}>
+                                {shown}
+                              </span>
+                              <span className="v-bar">
+                                <i style={{ width: `${Math.max(p, 2)}%`, background: c }} />
+                              </span>
+                            </span>
+                          </td>
+                        );
+                      })}
+                      {filters.role != null && (
+                        <td>
+                          <span className="role-cell">
+                            <span className="rc-fit" style={{ color: ramp(r.rf?.[filters.role] ?? 0) }}>
+                              {r.rf?.[filters.role] == null ? "—" : Math.round(r.rf[filters.role])}
+                            </span>
+                            <span className="rc-lvl" style={{ color: ramp(r.rq?.[filters.role] ?? 0) }}>
+                              {r.rq?.[filters.role] == null ? "—" : Math.round(r.rq[filters.role])}
+                            </span>
+                          </span>
+                        </td>
+                      )}
+                      <td>
+                        <span className="sc-cell">
+                          {r.sc == null ? (
+                            <>
+                              <span className="sc-num none">—</span>
+                              <span className="sc-word" title={
+                                "The feed is missing too much of what this position " +
+                                "is judged on for a score to mean anything."
+                              }>no data</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="sc-num" style={{ color: ramp(r.sc) }}>
+                                {Math.round(r.sc)}
+                              </span>
+                              <span className="sc-word">{band(r.sc)}</span>
+                              {(() => {
+                                const cf = confidenceOf(r);
+                                if (!cf || cf.level === "high") return null;
+                                const sb = scoreBand(r);
+                                const why = [
+                                  `Ranked against ${cf.pool} players — ${cf.poolNote}.`,
+                                  sb ? `A place is worth about ${sb.step} points here, so read this as ${sb.lo}–${sb.hi}.` : "",
+                                  cf.positionNote || "",
+                                ].filter(Boolean).join(" ");
+                                return (
+                                  <span className={"sc-conf " + cf.level} title={why}>
+                                    {cf.level === "low" ? "low conf." : "med. conf."}
+                                  </span>
+                                );
+                              })()}
+                            </>
+                          )}
+                        </span>
+                      </td>
+                      {showAdj && (
+                        <td>
+                          <span className="adj-cell">
+                            {r.sc2 == null || r.sc == null ? (
+                              <span className="adj-num none">—</span>
+                            ) : (
+                              <span className="adj-num" style={{ color: ramp(r.sc2) }}>
+                                {r.sc2}
+                                {r.sc2 !== Math.round(r.sc) && (
+                                  <span className="adj-delta">
+                                    {r.sc2 > Math.round(r.sc) ? "+" : "−"}
+                                    {Math.abs(r.sc2 - Math.round(r.sc))}
+                                  </span>
+                                )}
+                              </span>
+                            )}
+                          </span>
+                        </td>
+                      )}
+                    </tr>
+                    {openAx && openAx.k === "t" && (
+                      <tr className="theme-strip">
+                        <td colSpan={totalCols}>
+                          <div className="ts-inner">
+                            <span className="ts-title">
+                              {openAx.name}
+                              <span className="ts-sub"> · what this ability is built from</span>
+                            </span>
+                            <div className="ts-grid">
+                              {openAx.m.map((mi) => {
+                                const p = r.p[mi], v = r.v[mi];
+                                return (
+                                  <div className="ts-metric" key={mi}>
+                                    <span className="ts-lbl">
+                                      {meta.short[mi]}
+                                      {meta.invert[mi] && <span className="ts-inv"> ·lower better</span>}
+                                    </span>
+                                    {p == null || v == null ? (
+                                      <span className="ts-val dim">—</span>
+                                    ) : (
+                                      <>
+                                        <span className="ts-bar">
+                                          <i style={{ width: `${Math.max(p, 2)}%`, background: ramp(p) }} />
+                                        </span>
+                                        <span className="ts-fig">
+                                          <b style={{ color: ramp(p) }}>{Math.round(p)}</b>
+                                          <span className="ts-raw">{fmt(v)} {meta.units[mi]}</span>
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {slice.length > 0 && (
+          <div className="pager">
+            <span className="count">
+              Showing <b>{from + 1}–{from + slice.length}</b> of{" "}
+              <b>{sorted.length}</b> {meta.positions[filters.position].toLowerCase()}
+              {spread.any && (() => {
+                const n = new Set(shown.map((r) => `${r.lid}_${r.sid}`)).size;
+                return n > 1 ? ` across ${n} competitions` : "";
+              })()}
+            </span>
+            <select value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}>
+              {[25, 50, 100, 0].map((n) => (
+                <option key={n} value={n}>{n === 0 ? "Show all" : `${n} per page`}</option>
+              ))}
+            </select>
+            {pages > 1 && (
+              <nav className="pnav">
+                <button disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}
+                  aria-label="Previous page">‹</button>
+                {pageList(safePage, pages).map((n, i) =>
+                  n === "…"
+                    ? <span key={`gap${i}`} className="gap">…</span>
+                    : <button key={n} aria-current={n === safePage}
+                        onClick={() => setPage(n)}>{n}</button>
+                )}
+                <button disabled={safePage >= pages} onClick={() => setPage(safePage + 1)}
+                  aria-label="Next page">›</button>
+              </nav>
+            )}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function Field({ label, children, wide }) {
+  return (
+    <div className={"fld" + (wide ? " wide" : "")}>
+      <span className="fld-label">{label}</span>
+      {children}
+    </div>
+  );
+}

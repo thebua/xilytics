@@ -1,0 +1,13 @@
+node_modules/
+scout/
+scout-src/node_modules/
+scout-src/dist/
+scout-src/scout_data/
+scout-src/scout_data.zip
+scout-src/public/data/*.json
+scout-src/demo/scout.html
+.env
+.env.*
+*.log
+.DS_Store
+.vercel

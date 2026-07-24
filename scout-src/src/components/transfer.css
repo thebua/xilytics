@@ -1,0 +1,192 @@
+.transfer { margin-top: 16px; }
+
+.tr-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.tr-head h2 { margin: 0; }
+.tr-head select {
+  background: var(--s2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 6px 9px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  min-width: 190px;
+}
+.tr-head select:focus { outline: none; border-color: var(--accent); }
+
+.tr-idle {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--faint);
+  line-height: 1.7;
+  max-width: 58ch;
+}
+
+.tr-cards {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: center;
+}
+@media (max-width: 620px) {
+  .tr-cards { grid-template-columns: 1fr; }
+  .tr-arrow { transform: rotate(90deg); justify-self: center; }
+}
+
+.tr-card {
+  background: var(--s2);
+  border-radius: var(--r);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.tr-card.lead { background: var(--s3); }
+
+.tr-label {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.tr-place {
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.tr-place em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--faint);
+}
+.tr-sub { font-size: 11.5px; color: var(--dim); line-height: 1.5; }
+
+.tr-arrow { color: var(--faint); font-size: 20px; }
+
+.tr-note {
+  margin: 16px 0 0;
+  padding-top: 13px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 11.5px;
+  color: var(--faint);
+  line-height: 1.75;
+}
+.tr-note b { color: var(--dim); font-weight: 600; }
+
+/* ---- full ranked league table with the player slotted in --------------- */
+.tr-table {
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+.tr-scroll { overflow: auto; max-height: 400px; }
+.tr-th {
+  display: grid;
+  gap: 8px;
+  align-items: end;
+  padding: 9px 14px;
+  min-width: max-content;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--s2);
+  border-bottom: 1px solid var(--line);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.tr-th-rank { text-align: center; }
+.tr-th-col { text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tr-th-score { text-align: right; }
+
+.tr-rows { }
+
+.tr-row {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 14px;
+  min-width: max-content;
+  border-bottom: 1px solid var(--line-soft);
+}
+.tr-row:last-child { border-bottom: 0; }
+
+.tr-rk {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--faint);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.tr-nm { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.tr-nm-main {
+  font-size: 13px;
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tr-nm-team {
+  font-size: 10.5px;
+  color: var(--faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tr-cell {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tr-cell .tr-dash { color: var(--faint); font-style: normal; }
+
+.tr-sc {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+.tr-sc-num {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tr-sc-raw { font-size: 9.5px; color: var(--faint); font-family: var(--mono); }
+
+/* the player himself — pulled out from the crowd */
+.tr-row.him {
+  background: var(--accent-soft);
+  border-left: 2px solid var(--accent);
+  border-bottom-color: transparent;
+}
+.tr-row.him .tr-rk { color: var(--accent); font-weight: 700; }
+.tr-row.him .tr-nm-main { color: var(--text); font-weight: 600; }
+.tr-row.him .tr-nm-team { color: var(--accent); opacity: 0.8; }
+
+.tr-colnote {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--faint);
+  line-height: 1.6;
+}

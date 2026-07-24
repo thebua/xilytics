@@ -1,0 +1,152 @@
+.lp { position: relative; }
+
+.lp-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 158px;
+  background: var(--s2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  text-align: left;
+}
+.lp-button:hover { border-color: rgba(148, 163, 184, 0.3); }
+.lp-button.open { border-color: var(--accent); }
+.lp-label { flex: 1; white-space: nowrap; }
+.lp-dots { display: flex; gap: 3px; }
+.lp-dots i { width: 6px; height: 6px; border-radius: 50%; display: block; }
+.lp-chev { color: var(--faint); font-size: 9px; }
+
+.lp-menu {
+  position: absolute;
+  z-index: 70;
+  top: calc(100% + 5px);
+  left: 0;
+  min-width: 250px;
+  background: var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 5px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  max-height: 340px;
+  overflow: auto;
+}
+
+.lp-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  color: var(--dim);
+}
+.lp-row:hover { background: var(--hover); color: var(--text); }
+.lp-row.on { color: var(--text); }
+
+.lp-check {
+  width: 15px; height: 15px;
+  border-radius: 4px;
+  border: 1.5px solid var(--line);
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  color: var(--bg);
+  flex: none;
+}
+.lp-row.on .lp-check { background: var(--accent); border-color: var(--accent); }
+
+.lp-code {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: 3px;
+  padding: 2px 5px;
+  flex: none;
+  min-width: 34px;
+  text-align: center;
+  background: color-mix(in srgb, var(--lg) 16%, transparent);
+  color: var(--lg);
+  border: 1px solid color-mix(in srgb, var(--lg) 32%, transparent);
+}
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  .lp-code { background: var(--s3); border-color: var(--line); color: var(--dim); }
+}
+
+.lp-name { flex: 1; white-space: nowrap; }
+.lp-n {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.lp-sep { height: 1px; background: var(--line-soft); margin: 5px 2px; }
+
+.lp-clear {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: var(--faint);
+  font-size: 12px;
+  padding: 7px 8px;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 4px;
+}
+.lp-clear:hover { color: var(--warn); background: var(--hover); }
+
+.lp-tier {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding: 9px 8px 4px;
+  border-top: 1px solid var(--line-soft);
+  margin-top: 3px;
+}
+.lp-menu > div:first-child .lp-tier { border-top: 0; margin-top: 0; padding-top: 4px; }
+
+.lp-flag {
+  width: 20px;
+  height: 14px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--line);
+  flex: none;
+  margin-right: 2px;
+}
+
+/* Select all / Clear all header */
+.lp-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 4px;
+}
+.lp-act {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--s2);
+  color: var(--dim);
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+.lp-act:hover { border-color: var(--faint); color: var(--text); }
+.lp-act.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.lp-actn { margin-left: auto; font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }

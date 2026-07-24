@@ -1,0 +1,247 @@
+/* ---- hero ---- */
+.hero {
+  background: var(--s1);
+  border-radius: var(--r);
+  padding: 24px 26px;
+  margin-bottom: 16px;
+  box-shadow: var(--lift);
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.hero .avatar, .hero .avatar-fallback {
+  border: 2px solid var(--line);
+  font-family: var(--display);
+}
+.hero-id { flex: 1; min-width: 200px; }
+.hero-id h1 {
+  font-family: var(--sans);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  font-size: 32px;
+  letter-spacing: 0.01em;
+  margin: 0;
+  line-height: 1.05;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.hero-flag {
+  width: 30px;
+  height: 21px;
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--line);
+  flex: none;
+}
+.hero-sub {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--dim);
+  margin: 5px 0 0;
+  letter-spacing: 0.04em;
+}
+.hero-tags { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+.tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--dim);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 3px 7px;
+}
+.tag.hot { color: var(--accent); border-color: rgba(0, 229, 160, 0.32); }
+
+.hero-kpis { display: flex; gap: 24px; flex-wrap: wrap; }
+.kpi { text-align: right; min-width: 54px; }
+.kpi-v {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.kpi-l {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-top: 5px;
+}
+
+/* ---- layout ---- */
+.profile-split {
+  display: grid;
+  grid-template-columns: 386px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 1000px) { .profile-split { grid-template-columns: 1fr; } }
+.profile-side { display: flex; flex-direction: column; gap: 16px; }
+.pill-btn.wide { width: 100%; text-align: center; padding: 11px; }
+
+/* ---- similar players ---- */
+.sim-list { display: flex; flex-direction: column; }
+.sim {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line-soft);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+.sim:last-of-type { border-bottom: 0; }
+.sim:hover { background: rgba(0, 229, 160, 0.05); }
+.sim-id { flex: 1; min-width: 0; }
+.sim-n {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sim-t { display: block; font-family: var(--mono); font-size: 10px; color: var(--faint); }
+.sim-pair {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.sim-pair b { font-size: 11.5px; font-weight: 700; color: var(--accent); }
+.sim-pair em { font-size: 11.5px; font-style: normal; font-weight: 700; }
+.sim-key {
+  margin: 12px 0 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 11.5px;
+  color: var(--faint);
+  line-height: 1.65;
+}
+
+/* ---- metric list (moved into the merged Rankings card) ---- */
+
+.tag.style {
+  color: var(--gold);
+  border-color: rgba(240, 198, 74, 0.3);
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ---- season / league switcher under the hero ------------------------- */
+.season-switch {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 0 4px;
+  flex-wrap: wrap;
+}
+.ss-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--faint);
+  flex: none;
+}
+.ss-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.ss-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.ss-tab:hover { border-color: var(--faint); }
+.ss-tab.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  cursor: default;
+}
+
+.ss-season {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+.ss-tab.active .ss-season { color: var(--text); font-weight: 600; }
+
+.ss-league {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ss-score {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--faint);
+  padding-left: 7px;
+  border-left: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+.ss-tab.active .ss-score { color: var(--accent); }
+
+/* =====================================================================
+ * Phones
+ * ===================================================================== */
+@media (max-width: 640px) {
+  .hero { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .hero-id h1 { font-size: 25px; }
+  .hero-flag { width: 26px; height: 18px; }
+  .hero-kpis { width: 100%; gap: 14px; flex-wrap: wrap; }
+  .hero-tags { gap: 5px; }
+  .tag { font-size: 10.5px; padding: 3px 7px; }
+  .season-switch { gap: 8px; }
+  .ss-tabs { gap: 6px; }
+  .ss-tab { padding: 7px 10px; }
+}
+
+/* keeping a player: quiet until used, unmistakable after */
+.hero-keep {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.keep-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--s2);
+  color: var(--dim);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.14s, color 0.14s, background 0.14s;
+}
+.keep-btn:hover { border-color: var(--faint); color: var(--text); }
+.keep-btn.on {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}

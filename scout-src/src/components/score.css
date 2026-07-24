@@ -1,0 +1,192 @@
+.score-box {
+  background: var(--s1);
+  border-radius: var(--r);
+  overflow: hidden;
+  box-shadow: var(--lift);
+}
+
+.score-head {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  padding: 18px 20px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+.score-head:hover { background: var(--hover); }
+.score-val {
+  font-family: var(--mono);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.score-meta { flex: 1; min-width: 0; }
+.score-meta b { display: block; font-size: 13px; font-weight: 600; line-height: 1.25; }
+.score-meta span {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  margin-top: 2px;
+}
+.score-chev {
+  font-family: var(--mono);
+  font-size: 16px;
+  color: var(--faint);
+  width: 18px;
+  text-align: center;
+}
+
+.score-body { padding: 4px 15px 15px; border-top: 1px solid var(--line-soft); }
+
+/* ---- one ability ---- */
+.theme { border-bottom: 1px solid var(--line-soft); }
+.theme:last-of-type { border-bottom: 0; }
+
+.theme-row {
+  display: grid;
+  grid-template-columns: 1fr 32px 84px 28px 34px;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.theme-row:hover .th-name { color: var(--text); }
+.th-name {
+  font-size: 13.5px;
+  color: var(--dim);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.12s;
+}
+.th-flag { color: var(--gold); font-size: 10px; cursor: help; }
+.th-weight {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  text-align: right;
+}
+/* geometry comes from .meter; nothing to add here */
+.th-val {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- what's inside it ---- */
+.theme-detail {
+  padding: 4px 0 12px 12px;
+  margin-left: 2px;
+  border-left: 2px solid var(--line);
+}
+.th-note {
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  color: var(--gold);
+  line-height: 1.6;
+  opacity: 0.85;
+}
+.sub-row {
+  display: grid;
+  grid-template-columns: 1fr 54px 28px;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 0;
+}
+.sub-label { font-size: 12px; color: var(--faint); }
+.sub-raw {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.sub-pct {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.th-share {
+  margin: 8px 0 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  letter-spacing: 0.04em;
+}
+
+.score-note {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 11.5px;
+  color: var(--faint);
+  line-height: 1.75;
+}
+
+/* ---- pool line above the abilities ---- */
+.score-pool {
+  padding: 10px 0 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 12px;
+  color: var(--faint);
+  line-height: 1.6;
+}
+.score-pool b { color: var(--dim); font-weight: 600; }
+.pool-warn { color: var(--gold); }
+
+/* share of the score, shown inline on each ability row */
+.th-share-inline {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--faint);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-val.none { color: var(--faint); font-weight: 500; }
+
+/* how firm the headline number is */
+.score-conf {
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+  align-self: center;
+  margin-left: auto;
+  margin-right: 8px;
+}
+.score-conf.low { color: var(--gold); }
+.score-conf.medium { color: var(--faint); }
+
+.score-caveat {
+  margin: 10px 0 14px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--line);
+  background: var(--s2);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+.score-caveat p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--dim);
+}
+.score-caveat p + p { margin-top: 7px; }
