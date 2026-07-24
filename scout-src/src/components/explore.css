@@ -42,6 +42,18 @@
  */
 .bar-toggle { display: none; }
 
+/*
+ * Two controls that exist only on a phone, hidden here.
+ *
+ * The sort bar duplicates what column headers already do, and the pick
+ * button duplicates the checkbox in the first column. Offering both at
+ * once would be two ways to do one thing, which is how an interface starts
+ * feeling untidy even when everything works.
+ */
+.sortbar { display: none; }
+.who-pick { display: none; }
+.sheet-veil, .sortsheet { display: none; }
+
 .fld { display: flex; flex-direction: column; gap: 6px; }
 .fld.wide { min-width: 160px; }
 .fld-label {
@@ -617,8 +629,49 @@ thead th.metric.adj-h { padding-right: 18px; }
   .who { padding: 0; gap: 10px; }
   .who-m { max-width: none; }
 
-  /* selection box and rank sit out of the way */
-  tbody td.pick { position: absolute; opacity: 0; pointer-events: none; }
+  /*
+   * The real checkbox goes, and the card's own button takes over.
+   *
+   * `display: none` rather than the transparent, unclickable cell this used
+   * to be: a control that is invisible but still in the accessibility tree
+   * is worse than one that is properly absent, because a screen reader
+   * announces something nobody can reach.
+   */
+  tbody td.pick { display: none; }
+
+  /*
+   * The pick button sits in the corner of the card, over the player's own
+   * row rather than below it, so the card keeps its height. 40px square,
+   * which is close enough to the 44 a thumb wants and as much as the row
+   * will give without pushing the name down a line.
+   */
+  .who { position: relative; padding-right: 46px; }
+
+  .who-pick {
+    display: grid;
+    place-items: center;
+    position: absolute;
+    top: -2px;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--s2);
+    color: var(--faint);
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .who-pick.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .who-pick:active { transform: scale(0.94); }
 
   /* every figure carries its own name, since the header is gone */
   tbody td[data-label]::before {
@@ -851,4 +904,215 @@ thead th.metric.adj-h { padding-right: 18px; }
     flex: 0 0 auto;
   }
 
+}
+
+/* =====================================================================
+ * Sorting on a phone
+ * =====================================================================
+ * The table sorts by its column headers, and the card layout has no
+ * headers. That left the list permanently ordered by score in a tool
+ * built for the question "who is best at this one thing" — the filters
+ * narrowed the set and nothing could reorder it.
+ *
+ * The bar answers three questions without a tap: how many players, sorted
+ * by what, and in which direction. The sheet behind it uses the same
+ * shape as the league picker, because two sheets that behave differently
+ * are worse than one that behaves oddly.
+ * ===================================================================== */
+
+@media (max-width: 760px) {
+  .sortbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 10px;
+    padding: 9px 2px;
+  }
+
+  /*
+   * The key above the table carried a mode switch and a paragraph telling
+   * the reader to hover a cell. The paragraph is wrong on a phone — there
+   * is no hover — and the switch is better company for Sort than for a
+   * sentence, so the sentence goes and the strip closes up.
+   *
+   * The switch itself stays where it is rather than moving into the bar:
+   * markup that reorders itself between layouts is where the two versions
+   * start drifting apart.
+   */
+  .table-key {
+    padding: 9px 12px;
+    gap: 10px;
+  }
+  .key-text { display: none; }
+  .mode-switch { margin: 0 auto 0 0; }
+
+  .sb-count {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .sb-count b { color: var(--text); font-weight: 500; }
+
+  .sb-sort {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-left: auto;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background: var(--s2);
+    color: var(--dim);
+    font: inherit;
+    font-size: 12.5px;
+    cursor: pointer;
+    max-width: 62%;
+  }
+  .sb-sort:active { background: var(--s3); }
+  .sb-sort-l { color: var(--faint); flex: none; }
+  .sb-sort b {
+    color: var(--text);
+    font-weight: 600;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sb-dir { flex: none; font-size: 9px; color: var(--accent); }
+
+  /* ------------------------------------------------------------ sheet */
+
+  .sheet-veil {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 380;
+    background: rgba(4, 7, 6, 0.6);
+    backdrop-filter: blur(2px);
+  }
+
+  .sortsheet {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    z-index: 390;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 76vh;
+    background: var(--s2);
+    border: 1px solid var(--line);
+    border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -18px 44px rgba(0, 0, 0, 0.6);
+    animation: ss-rise 0.2s cubic-bezier(0.2, 0.8, 0.3, 1);
+    overscroll-behavior: contain;
+  }
+
+  @keyframes ss-rise {
+    from { transform: translateY(14px); opacity: 0.6; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  .ss-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .ss-head b {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .ss-done {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 7px 15px;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: var(--accent);
+    color: var(--bg);
+    cursor: pointer;
+  }
+
+  /*
+   * Direction, as two named choices rather than an arrow to decipher.
+   * "Highest first" says what will happen; a caret pointing down asks the
+   * reader to work out what it refers to.
+   */
+  .ss-dir {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 12px 12px 10px;
+  }
+  .ss-dir button {
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--dim);
+    font: inherit;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  .ss-dir button[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .ss-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2px 6px calc(12px + env(safe-area-inset-bottom));
+    overscroll-behavior: contain;
+  }
+
+  .ss-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 8px;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--dim);
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .ss-row:active { background: var(--hover); }
+  .ss-row.on { color: var(--text); }
+
+  .ss-tick {
+    flex: none;
+    width: 16px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .ss-name { flex: 1; min-width: 0; }
+
+  /*
+   * Abilities and metrics sit in the same list as age and minutes, and the
+   * difference matters: one is a composite of several figures, the other a
+   * single one. A quiet label is cheaper than two headed sections.
+   */
+  .ss-kind {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
 }

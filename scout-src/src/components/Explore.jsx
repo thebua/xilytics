@@ -34,6 +34,37 @@ export default function Explore({
    */
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  /*
+   * Sorting, on a phone.
+   *
+   * Every column is sortable by its header, and the header is the first
+   * thing a narrow screen gives up — the table becomes a list of cards and
+   * thead goes with it. Which left the ranking sorted by score and no way
+   * to change it: no age, no minutes, no ability, in a tool whose whole
+   * purpose is finding the player who is best at one particular thing.
+   *
+   * So the same choices arrive as a sheet, opened from a bar above the
+   * list. Desktop keeps its headers and never sees this.
+   */
+  const [sortOpen, setSortOpen] = useState(false);
+
+  /*
+   * A sheet that covers the screen must stop the page behind it scrolling,
+   * or a drag meant for the list of options takes the ranking with it and
+   * the sheet slides out from under the finger.
+   */
+  useEffect(() => {
+    if (!sortOpen) return;
+    const held = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const esc = (e) => e.key === "Escape" && setSortOpen(false);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.body.style.overflow = held;
+      document.removeEventListener("keydown", esc);
+    };
+  }, [sortOpen]);
+
   const seasonNames = useMemo(() => {
     const ids = filters.league === ALL
       ? meta.pairs.map((p) => p[1])
@@ -210,6 +241,42 @@ export default function Explore({
 
   const arrow = (col) => sort.col === col
     ? <span className="arrow">{sort.dir < 0 ? "▼" : "▲"}</span> : null;
+
+  /*
+   * Every sortable column, named.
+   *
+   * The table gets these from its own headers; the phone has no headers, so
+   * the list is built once here and both read from it. The axes come last
+   * because they change with the position — a striker sorts on finishing, a
+   * keeper on shot stopping, and neither has the other's column.
+   */
+  const sortOptions = useMemo(() => {
+    const out = [
+      /*
+       * With a style chosen, the headline column stops being the score and
+       * becomes how closely a player matches that style — the comparator
+       * already switches on it, so the label follows rather than adding a
+       * second option that would sort by the same thing.
+       */
+      { col: "sc", label: filters.role != null ? "Style fit" : "Score" },
+      ...(showAdj ? [{ col: "adj", label: "Adjusted for league" }] : []),
+      { col: "n", label: "Name" },
+      { col: "age", label: "Age" },
+      { col: "m", label: "Minutes" },
+      { col: "rt", label: "Rating" },
+    ];
+    axes.forEach((ax, i) => {
+      out.push({
+        col: String(i),
+        label: ax.k === "t" ? ax.name : meta.labels[ax.i],
+        kind: ax.k === "t" ? "ability" : "metric",
+      });
+    });
+    return out;
+  }, [axes, meta, showAdj, filters.role]);
+
+  const sortLabel =
+    sortOptions.find((o) => o.col === sort.col)?.label ?? "Score";
 
   /*
    * What the closed drawer says.
@@ -411,6 +478,68 @@ export default function Explore({
         open={panelOpen} setOpen={setPanelOpen}
         matched={shown.length} total={eligible.length} />
 
+      {/*
+        The sort bar, and only on a phone.
+
+        It carries three things a reader wants before they start scrolling:
+        how many players are in front of them, what the list is ordered by,
+        and a way to change that. CSS hides the whole thing on a wide
+        screen, where the column headers already do the job.
+      */}
+      <div className="sortbar">
+        <span className="sb-count">
+          <b>{sorted.length.toLocaleString()}</b> players
+        </span>
+        <button className="sb-sort" onClick={() => setSortOpen(true)}
+          aria-expanded={sortOpen}>
+          <span className="sb-sort-l">Sort</span>
+          <b>{sortLabel}</b>
+          <span className="sb-dir" aria-hidden="true">{sort.dir < 0 ? "▼" : "▲"}</span>
+        </button>
+      </div>
+
+      {sortOpen && (
+        <>
+          <div className="sheet-veil" onClick={() => setSortOpen(false)} />
+          <div className="sortsheet" role="dialog" aria-label="Sort by">
+            <div className="ss-head">
+              <b>Sort by</b>
+              <button className="ss-done" onClick={() => setSortOpen(false)}>Done</button>
+            </div>
+
+            {/*
+              Direction is its own control rather than a second tap on the
+              chosen column. On a table, clicking a header twice to reverse
+              it is understood; in a list of options it is a hidden gesture,
+              and the one people miss.
+            */}
+            <div className="ss-dir">
+              <button aria-pressed={sort.dir < 0}
+                onClick={() => setSort((s) => ({ ...s, dir: -1 }))}>
+                Highest first
+              </button>
+              <button aria-pressed={sort.dir > 0}
+                onClick={() => setSort((s) => ({ ...s, dir: 1 }))}>
+                Lowest first
+              </button>
+            </div>
+
+            <div className="ss-list">
+              {sortOptions.map((o) => (
+                <button key={o.col} className={"ss-row" + (sort.col === o.col ? " on" : "")}
+                  onClick={() => { setSort((s) => ({ ...s, col: o.col })); setPage(1); }}>
+                  <span className="ss-tick" aria-hidden="true">
+                    {sort.col === o.col ? "✓" : ""}
+                  </span>
+                  <span className="ss-name">{o.label}</span>
+                  {o.kind && <span className="ss-kind">{o.kind}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
       <div className="tablebox">
         <div className="table-key">
           <div className="mode-switch" role="group" aria-label="What the columns show">
@@ -536,6 +665,31 @@ export default function Explore({
                               {r.t}{r.dp ? ` · ${r.dp}` : ""}
                             </span>
                           </span>
+
+                          {/*
+                            Adding a player to the comparison, on a phone.
+
+                            The checkbox that does this on a wide screen
+                            lives in a column of its own, and that column is
+                            the first thing the card layout drops — which
+                            left Compare reachable only from a profile, and
+                            the selection tray unreachable altogether. The
+                            feature was there and could not be used.
+
+                            So the card carries its own control, in the
+                            corner where a save button belongs, sized for a
+                            thumb rather than a cursor. CSS hides it wherever
+                            the real checkbox is visible, so neither layout
+                            offers two ways to do one thing.
+                          */}
+                          <button className={"who-pick" + (isMarked ? " on" : "")}
+                            aria-pressed={isMarked}
+                            aria-label={isMarked
+                              ? `Remove ${r.n} from comparison`
+                              : `Add ${r.n} to comparison`}
+                            onClick={(e) => { e.stopPropagation(); toggleMark(r); }}>
+                            {isMarked ? "✓" : "＋"}
+                          </button>
                         </div>
                       </td>
                       <td data-label="Age"><span className="cel">{r.age ?? "—"}</span></td>
