@@ -7,7 +7,7 @@
  */
 
 import {
-  db, json, fail, whoIs, readableLeagues,
+  db, json, fail, serverError, whoIs, readableLeagues,
   intParam, PUBLIC_CACHE, PRIVATE_CACHE,
 } from "./_db.js";
 
@@ -16,8 +16,14 @@ export async function GET(request) {
   const id = intParam(url.searchParams.get("id"));
   if (!id) return fail("id is required");
 
-  const who = await whoIs(request);
-  const allowed = await readableLeagues(who);
+  let who;
+  let allowed;
+  try {
+    who = await whoIs(request);
+    allowed = await readableLeagues(who);
+  } catch (err) {
+    return serverError(err, "player/identity");
+  }
 
   const args = [id];
   let leagueFilter = "";
@@ -114,6 +120,6 @@ export async function GET(request) {
       { cache: who ? PRIVATE_CACHE : PUBLIC_CACHE }
     );
   } catch (err) {
-    return fail(`player query failed: ${err.message}`, 500);
+    return serverError(err, "player");
   }
 }

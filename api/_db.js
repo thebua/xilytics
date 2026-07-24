@@ -82,8 +82,30 @@ export function json(data, { status = 200, cache = PUBLIC_CACHE } = {}) {
   return new Response(JSON.stringify(data), { status, headers });
 }
 
+/*
+ * A refusal the caller can act on: a missing parameter, a position that is
+ * not a position. The message is written for whoever is reading it and is
+ * safe to show, because it describes the request rather than the server.
+ */
 export function fail(message, status = 400) {
   return json({ error: message }, { status, cache: PRIVATE_CACHE });
+}
+
+/*
+ * A failure the caller can do nothing about.
+ *
+ * Postgres error messages name tables, columns and constraints, and these
+ * used to travel straight to the browser — a free tour of the schema for
+ * anyone who could provoke one. The detail belongs in the logs, where it
+ * is just as useful and nobody else is reading; the response says only
+ * that something broke.
+ */
+export function serverError(err, where) {
+  console.error(`[${where}]`, err);
+  return json(
+    { error: "Something went wrong on our side. Please try again." },
+    { status: 500, cache: PRIVATE_CACHE }
+  );
 }
 
 /* ------------------------------------------------------------- identity */
@@ -136,7 +158,7 @@ export async function whoIs(request) {
 
 /*
  * The leagues this caller may read. Members get everything; everyone else
- * gets the open three. Returning ids rather than a boolean keeps the rule
+ * gets the open ones. Returning ids rather than a boolean keeps the rule
  * in one place — every query filters on the same list.
  */
 export async function readableLeagues(who) {

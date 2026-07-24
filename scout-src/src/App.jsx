@@ -255,25 +255,23 @@ export default function App() {
   /* ------------------------------------------------------------- account */
 
   /*
-   * Sign-in is a redirect: the browser leaves for Google or for a mailbox
-   * and comes back to this page with a token in the fragment. Nothing to
-   * do on this side but ask — onAuthStateChange picks it up on return.
+   * Sign-in is a redirect: the browser leaves for Google and comes back
+   * here with a token in the fragment. Nothing to do on this side but ask —
+   * onAuthStateChange picks it up on return.
+   *
+   * The return address is written out rather than read from the current
+   * location. window.location.pathname gives "/scout" when the page was
+   * reached without the trailing slash, Supabase compares it against a
+   * list holding "/scout/", finds no match, and falls back to the site
+   * root — so the visitor signs in successfully and lands on the home
+   * page wondering what happened. A literal path cannot drift.
    */
-  const signIn = async (how, email) => {
-    const redirectTo = `${window.location.origin}${window.location.pathname}`;
+  const signIn = async (how) => {
+    if (how !== "google") return;
 
-    if (how === "google") {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo },
-      });
-      if (error) throw error;
-      return;
-    }
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: redirectTo },
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/scout/` },
     });
     if (error) throw error;
   };

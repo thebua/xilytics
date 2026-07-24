@@ -10,12 +10,19 @@
  */
 
 import {
-  db, json, fail, whoIs, readableLeagues, PUBLIC_CACHE, PRIVATE_CACHE,
+  db, json, fail, serverError, whoIs, readableLeagues,
+  PUBLIC_CACHE, PRIVATE_CACHE,
 } from "./_db.js";
 
 export async function GET(request) {
-  const who = await whoIs(request);
-  const allowed = await readableLeagues(who);
+  let who;
+  let allowed;
+  try {
+    who = await whoIs(request);
+    allowed = await readableLeagues(who);
+  } catch (err) {
+    return serverError(err, "meta/identity");
+  }
 
   try {
     const pool = db();
@@ -80,16 +87,26 @@ export async function GET(request) {
     );
 
     /*
-     * How many leagues are being withheld. The interface can then say what
-     * signing in would open up, which is more useful — and more honest —
-     * than quietly showing a shorter list.
+     * How many leagues are being withheld from this caller.
+     *
+     * The query used to ignore who was asking and count every closed
+     * league in the database, which happened to be right for a visitor
+     * and wrong for a member — one number describing two different
+     * situations. It now counts what is missing from the readable set,
+     * so it is zero for anyone who can already see everything and the
+     * interface can say honestly what signing in would open up.
      */
-    const locked = await pool.query(
-      `select count(*)::int as n
-         from leagues l
-        where not l.is_open
-          and exists (select 1 from entries e where e.league_id = l.id)`
-    );
+    let lockedCount = 0;
+    if (allowed) {
+      const locked = await pool.query(
+        `select count(*)::int as n
+           from leagues l
+          where not (l.id = any($1::int[]))
+            and exists (select 1 from entries e where e.league_id = l.id)`,
+        [allowed]
+      );
+      lockedCount = locked.rows[0].n;
+    }
 
     return json(
       {
@@ -97,7 +114,7 @@ export async function GET(request) {
         minMinutes: min_minutes,
         tier: who?.tier ?? "free",
         signedIn: Boolean(who),
-        lockedLeagues: who?.tier === "member" ? 0 : locked.rows[0].n,
+        lockedLeagues: lockedCount,
         leagues: leagues.rows,
         seasons: seasons.rows,
         nationalities: nats.rows,
@@ -124,6 +141,6 @@ export async function GET(request) {
       { cache: who ? PRIVATE_CACHE : PUBLIC_CACHE }
     );
   } catch (err) {
-    return fail(`meta failed: ${err.message}`, 500);
+    return serverError(err, "meta");
   }
 }

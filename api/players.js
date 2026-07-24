@@ -17,11 +17,11 @@
  *   sort     score|adj|age|minutes|rating|name   default: score
  *   dir      asc|desc                            default: desc
  *   page     1-based                             default: 1
- *   limit    rows per page, 1-100                default: 25
+ *   limit    rows per page, 1-10000              default: 25
  */
 
 import {
-  db, json, fail, whoIs, readableLeagues,
+  db, json, fail, serverError, whoIs, readableLeagues,
   intParam, clamp, validPosition, PUBLIC_CACHE, PRIVATE_CACHE,
 } from "./_db.js";
 
@@ -41,14 +41,21 @@ export async function GET(request) {
   const pos = validPosition(qs.get("pos"));
   if (!pos) return fail("pos must be one of GK CB RB LB DM CM AM RW LW ST");
 
-  const who = await whoIs(request);
-  const allowed = await readableLeagues(who);
+  let who;
+  let allowed;
+  try {
+    who = await whoIs(request);
+    allowed = await readableLeagues(who);
+  } catch (err) {
+    return serverError(err, "players/identity");
+  }
 
   /*
    * Parameters are collected into an array and referenced by position, so
    * nothing a visitor types is ever concatenated into the statement. The
-   * only place a caller influences the shape of the SQL is the sort column,
-   * which is looked up in a fixed table rather than passed through.
+   * only place a caller influences the shape of the SQL is the sort column
+   * and its direction, both looked up in fixed tables rather than passed
+   * through.
    */
   const args = [pos];
   const where = ["e.pos = $1", "e.score is not null"];
@@ -62,7 +69,7 @@ export async function GET(request) {
        page rather than a silent substitution — quieter would be lying. */
     if (asked.length && !leagues.length) {
       return json(
-        { rows: [], total: 0, page: 1, limit: 0, locked: true },
+        { rows: [], total: 0, page: 1, limit: 0, pages: 0, locked: true },
         { cache: PRIVATE_CACHE }
       );
     }
@@ -101,6 +108,7 @@ export async function GET(request) {
 
   const sortCol = SORTS[qs.get("sort")] || SORTS.score;
   const dir = qs.get("dir") === "asc" ? "asc" : "desc";
+
   /*
    * A page caps at 100 for a table, but the interface keeps a whole
    * position in memory and filters there, so it asks for the lot in one
@@ -116,13 +124,21 @@ export async function GET(request) {
   const clause = where.join(" and ");
 
   /*
-   * Two things used to make this slow.
+   * limit and offset are bound like everything else.
    *
-   * `count(*) over ()` computed the total on every row. When the caller
-   * asks for a whole position — which the interface always does — the
-   * total is just the number of rows returned, so the window function was
-   * counting something we already knew.
-   *
+   * They were interpolated for a while, which was safe only because clamp
+   * and intParam happened to leave nothing but a number behind. That is a
+   * guarantee held in two other functions rather than in the statement,
+   * and one careless edit to either would turn a page number into a way
+   * into the database. Binding them costs nothing and removes the
+   * question.
+   */
+  args.push(limit);
+  const limitAt = args.length;
+  args.push(offset);
+  const offsetAt = args.length;
+
+  /*
    * The tiebreak used to be `p.name`, which meant sorting on a joined
    * table and gave up the index on (pos, score). Ties break on the entry
    * id instead: arbitrary, but stable, and it lets the planner walk the
@@ -141,7 +157,7 @@ export async function GET(request) {
     join players p on p.id = e.player_id
     where ${clause}
     order by ${sortCol} ${dir} nulls last, e.id asc
-    limit ${limit} offset ${offset}
+    limit $${limitAt} offset $${offsetAt}
   `;
 
   let result;
@@ -149,18 +165,44 @@ export async function GET(request) {
   try {
     result = await db().query(sql, args);
   } catch (err) {
-    return fail(`query failed: ${err.message}`, 500);
+    return serverError(err, "players/query");
   }
   const took = Date.now() - started;
 
   const rows = result.rows;
+
   /*
-   * With the window function gone, the total is what came back plus
-   * whatever was skipped. The interface asks for the whole position in
-   * one go, so this is the real count; if it ever pages, the last page
-   * is what tells it where the end is.
+   * How many there are altogether.
+   *
+   * `count(*) over ()` used to ride along on every row, which meant
+   * counting the whole set to answer a question the caller usually had
+   * not asked. Dropping it was right; replacing it with offset + rows
+   * was not, because a full page tells you nothing about what follows and
+   * the figure quietly became "how many you have seen so far".
+   *
+   * A short page is the end of the set and needs no second query. A full
+   * one asks, and only then.
    */
-  const total = offset + rows.length;
+  let total = offset + rows.length;
+  if (rows.length === limit) {
+    try {
+      const counted = await db().query(
+        `select count(*)::int as n
+           from entries e
+           join players p on p.id = e.player_id
+          where ${clause}`,
+        args.slice(0, limitAt - 1)
+      );
+      total = counted.rows[0].n;
+    } catch (err) {
+      /*
+       * The rows are in hand and worth serving. A total that stops at the
+       * end of this page is a worse answer than the true one and a much
+       * better answer than an error screen.
+       */
+      console.error("[players/count]", err);
+    }
+  }
 
   /*
    * A signed-in member sees more than an anonymous visitor, so their
